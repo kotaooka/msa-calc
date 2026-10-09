@@ -1,0 +1,18 @@
+{
+  "name": "測定システム解析",
+  "short_name": "MSA",
+  "description": "ゲージR&R（平均範囲法・ANOVA）、偏り・直線性・安定性、Type-1（Cg・Cgk）、計数値の κ・有効性をブラウザだけで計算する",
+  "lang": "ja",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#eef1f4",
+  "theme_color": "#1d5c96",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

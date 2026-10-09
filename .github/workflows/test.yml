@@ -1,0 +1,21 @@
+# プッシュ時に計算・表の読み取りのテストと、解説の埋め込みが最新かを確認する
+name: test
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: pip install markdown numpy scipy pandas statsmodels scikit-learn
+      - name: 解説（docs/explanation.md）の埋め込みが最新か
+        run: python tools/build.py && git diff --exit-code index.html
+      - name: 計算・表の読み取りのテスト（コミット済みの参照値）
+        run: node tests/test.js
+      - name: 最新の scipy・statsmodels で参照値を作り直して再テスト
+        run: python tests/make_reference.py && node tests/test.js

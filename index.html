@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>測定システム解析</title>
+<meta name="description" content="ゲージR&R（平均範囲法・ANOVA）、偏り・直線性・安定性、Type-1（Cg・Cgk）、計数値の κ・有効性をブラウザだけで計算する">
+<link rel="canonical" href="https://kotaooka.github.io/msa-calc/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="QC Workbench">
+<meta property="og:title" content="測定システム解析｜ゲージR&R・偏り・直線性・κ">
+<meta property="og:description" content="ゲージR&R（平均範囲法・ANOVA）、偏り・直線性・安定性、Type-1（Cg・Cgk）、計数値の κ・有効性をブラウザだけで計算する">
+<meta property="og:url" content="https://kotaooka.github.io/msa-calc/">
+<meta property="og:image" content="https://kotaooka.github.io/msa-calc/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="測定システム解析：ゲージR&R、偏り・直線性・安定性、Type-1、計数値">
+<meta property="og:locale" content="ja_JP">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#1d5c96" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#11161b" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="MSA">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* 色・字体は cpk-calc / sampling-calc / stackup-calc と共通 */
+:root {
+  --bg: #eef1f4; --surface: #ffffff; --ink: #15212c; --ink2: #475563; --muted: #74818e; --line: #d5dce3;
+  --accent: #1d5c96; --accent-ink: #ffffff; --accent-weak: #e1ebf5;
+  --ok: #17703a; --ok-weak: #e2f2e7; --good: #3f7d1e; --good-weak: #edf5df; --ng: #ad2a22; --ng-weak: #f8e4e2; --warn: #8a5300; --warn-weak: #f8ecd9;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #8c5bd6; --grid: #e4e9ee;
+  --f-ui: "BIZ UDPGothic", "Hiragino Sans", "Yu Gothic UI", "Meiryo", system-ui, sans-serif;
+  --f-num: "IBM Plex Mono", ui-monospace, "Consolas", monospace;
+  --r: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161b; --surface: #19212a; --ink: #e6ecf2; --ink2: #a9b5c1; --muted: #7d8996; --line: #2b3641;
+    --accent: #6ba6df; --accent-ink: #0d1620; --accent-weak: #1c2f43;
+    --ok: #57c483; --ok-weak: #163222; --good: #9ccc65; --good-weak: #23301a; --ng: #f07a70; --ng-weak: #3a1c1a; --warn: #e3a84e; --warn-weak: #36280f;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #a07ae0; --grid: #253039;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161b; --surface: #19212a; --ink: #e6ecf2; --ink2: #a9b5c1; --muted: #7d8996; --line: #2b3641;
+  --accent: #6ba6df; --accent-ink: #0d1620; --accent-weak: #1c2f43;
+  --ok: #57c483; --ok-weak: #163222; --good: #9ccc65; --good-weak: #23301a; --ng: #f07a70; --ng-weak: #3a1c1a; --warn: #e3a84e; --warn-weak: #36280f;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #a07ae0; --grid: #253039;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-ui); font-size: 15px; line-height: 1.6; -webkit-text-size-adjust: 100%; }
+.num, .mono, input[type="number"], input.num { font-family: var(--f-num); font-variant-numeric: tabular-nums; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 16px; padding-block: 0 56px; }
+
+header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); }
+.top-in { max-width: 1120px; margin: 0 auto; padding-inline: 16px; padding-block: 12px 0; }
+.brand { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.brand h1 { font-size: 1.15rem; margin: 0; letter-spacing: .02em; }
+.brand .std { font-size: .78rem; color: var(--muted); }
+/* QC Workbench へ戻るリンク（パンくず） */
+.brand .home { font-size: .78rem; color: var(--muted); text-decoration: none; margin-right: -6px; }
+.brand .home:hover { color: var(--accent); text-decoration: underline; }
+.brand .crumb { font-size: .78rem; color: var(--muted); margin-right: -6px; }
+.brand .theme { margin-left: auto; }
+nav.tabs { display: flex; gap: 4px; margin-top: 10px; overflow-x: auto; scrollbar-width: none; }
+nav.tabs::-webkit-scrollbar { display: none; }
+nav.tabs button { flex: 0 0 auto; border: 0; background: none; color: var(--ink2); font: inherit; font-size: .92rem; padding: 8px 12px 10px; cursor: pointer; border-bottom: 3px solid transparent; }
+nav.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); font-weight: 700; }
+nav.tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+.box { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; min-width: 0; margin-top: 16px; }
+.box > h2 { font-size: 1rem; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+.box > h2 .step { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-size: .78rem; }
+.hint { font-size: .78rem; color: var(--muted); }
+.lbl { font-size: .8rem; color: var(--ink2); letter-spacing: .03em; }
+.row { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+input[type="number"], input[type="text"], select {
+  font-size: .95rem; padding: 7px 9px; border-radius: var(--r); border: 1px solid var(--line); background: var(--bg); color: var(--ink); min-width: 0;
+}
+input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+label.chk { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: .9rem; }
+label.chk input { width: 16px; height: 16px; accent-color: var(--accent); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.seg button { border: 0; background: var(--bg); color: var(--ink2); font: inherit; font-size: .88rem; padding: 7px 12px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+.btn { border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; font-size: .9rem; padding: 7px 14px; border-radius: var(--r); cursor: pointer; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 700; padding: 9px 22px; }
+.btn.small { font-size: .8rem; padding: 4px 10px; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.drop { border: 2px dashed var(--line); border-radius: var(--r); padding: 18px; text-align: center; color: var(--ink2); }
+.drop.over { border-color: var(--accent); background: var(--accent-weak); }
+.drop strong { color: var(--ink); }
+.privacy { font-size: .8rem; color: var(--ok); margin-top: 8px; }
+.filebar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; font-size: .9rem; }
+
+.tbl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r); margin-top: 10px; }
+table { border-collapse: collapse; font-size: .85rem; min-width: 100%; }
+th, td { padding: 6px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+th { background: var(--bg); color: var(--ink2); font-weight: 700; position: sticky; top: 0; }
+td.l, th.l { text-align: left; }
+tbody tr:last-child td { border-bottom: 0; }
+td.lab { color: var(--muted); text-align: left; }
+td input { width: 9em; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips label { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line); border-radius: 999px; padding: 3px 11px 3px 8px; font-size: .88rem; cursor: pointer; background: var(--bg); }
+.chips label:has(input:checked) { border-color: var(--accent); background: var(--accent-weak); color: var(--ink); }
+.chips input { accent-color: var(--accent); }
+
+.lv { font-weight: 700; border-radius: 4px; padding: 2px 6px; }
+.lv.ex { background: var(--ok-weak); color: var(--ok); }
+.lv.gd { background: var(--good-weak); color: var(--good); }
+.lv.wa { background: var(--warn-weak); color: var(--warn); }
+.lv.ng { background: var(--ng-weak); color: var(--ng); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; font-size: .78rem; }
+
+.log { margin: 10px 0 0; padding: 0; list-style: none; font-size: .85rem; }
+.log li { padding: 4px 0 4px 22px; position: relative; border-bottom: 1px dashed var(--line); }
+.log li::before { position: absolute; left: 2px; font-weight: 700; }
+.log li.warn { color: var(--warn); } .log li.warn::before { content: "!"; }
+.log li.err { color: var(--ng); } .log li.err::before { content: "×"; }
+.log li.info { color: var(--ink2); } .log li.info::before { content: "i"; }
+
+.target { border-top: 1px solid var(--line); margin-top: 18px; padding-top: 14px; }
+.target h3 { margin: 0 0 8px; font-size: 1rem; }
+dl.kv { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px 16px; margin: 0 0 10px; }
+dl.kv dt { font-size: .72rem; color: var(--muted); }
+dl.kv dd { margin: 0; font-size: .98rem; }
+dl.kv dd small { color: var(--ink2); font-size: .74rem; }
+.charts { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 460px), 1fr)); gap: 12px; }
+.chart { border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; position: relative; }
+.chart svg { display: block; width: 100%; height: auto; }
+.chart .save { position: absolute; right: 6px; bottom: 6px; opacity: .0; transition: opacity .15s; }
+.chart:hover .save, .chart:focus-within .save { opacity: 1; }
+@media (hover: none) { .chart .save { opacity: .9; } }
+
+.res-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.res { border: 1px solid var(--line); border-radius: var(--r); padding: 12px; }
+.res h3 { margin: 0 0 6px; font-size: .95rem; }
+.verdict { font-weight: 700; font-size: 1.05rem; }
+.verdict.sig { color: var(--ng); } .verdict.nsig { color: var(--ok); }
+
+.explain { line-height: 1.8; }
+.explain h1 { font-size: 1.2rem; margin: 0 0 8px; }
+.explain h2 { font-size: 1.08rem; margin: 28px 0 8px; padding-bottom: 4px; border-bottom: 2px solid var(--accent-weak); }
+.explain h3 { font-size: .98rem; margin: 18px 0 6px; }
+.explain h4 { font-size: .92rem; margin: 14px 0 4px; }
+.explain pre { background: var(--bg); border: 1px solid var(--line); border-radius: var(--r); padding: 8px 12px; overflow-x: auto; font-size: .85rem; }
+.explain code { font-family: var(--f-num); }
+.explain table { min-width: 0; margin: 8px 0; }
+.explain hr { border: 0; border-top: 1px solid var(--line); margin: 24px 0; }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: var(--surface); padding: 8px 16px; border-radius: 999px; font-size: .88rem; z-index: 20; }
+.paste-hint { margin-top: 10px; font-size: .85rem; }
+.src-seg { margin-bottom: 12px; }
+.grid-tools { margin-bottom: 6px; }
+.btn.danger { color: var(--ng); }
+.saved { color: var(--ok); }
+.grid-wrap { overflow: auto; max-height: 520px; border: 1px solid var(--line); border-radius: var(--r); margin-top: 8px; }
+table.grid { border-collapse: separate; border-spacing: 0; min-width: 0; font-size: .9rem; }
+table.grid th, table.grid td { padding: 0; border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); }
+table.grid thead th { position: sticky; top: 0; z-index: 2; background: var(--bg); padding: 4px; vertical-align: top; }
+table.grid td.rn, table.grid th.rn { position: sticky; left: 0; z-index: 1; background: var(--bg); color: var(--muted); text-align: right; padding: 0 8px; font-family: var(--f-num); font-size: .8rem; min-width: 3em; }
+table.grid thead th.rn { z-index: 3; }
+table.grid td input { width: 7.5em; border: 0; border-radius: 0; background: var(--surface); padding: 6px 8px; font-family: var(--f-num); text-align: right; }
+table.grid td input.txt { text-align: left; font-family: var(--f-ui); }
+table.grid td input:focus { outline: 2px solid var(--accent); outline-offset: -2px; background: var(--accent-weak); }
+table.grid td input.bad { color: var(--ng); background: var(--ng-weak); }
+table.grid th .gh { display: flex; flex-direction: column; gap: 3px; }
+table.grid th .gh input { width: 7.5em; font-weight: 700; padding: 4px 6px; }
+table.grid th .gh .gsub { display: flex; gap: 4px; align-items: center; }
+table.grid th .gh select { font-size: .75rem; padding: 2px 4px; }
+table.grid th .gh .gdel { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: .9rem; padding: 0 4px; }
+table.grid th .gh .gstat { font-size: .7rem; color: var(--muted); font-weight: 400; font-family: var(--f-num); }
+table.spec td.draw input { width: 15em; font-family: var(--f-num); }
+table.spec td.draw input.bad { border-color: var(--ng); }
+table.spec td.draw .msg { display: block; font-size: .72rem; color: var(--ng); white-space: normal; text-align: left; }
+details.planner summary { cursor: pointer; list-style: none; }
+details.planner summary::-webkit-details-marker { display: none; }
+details.planner summary::before { content: "▸ "; color: var(--muted); }
+details.planner[open] summary::before { content: "▾ "; }
+.plan-out { margin: 10px 0; font-size: .95rem; }
+.plan-out .big { font-size: 1.5rem; font-weight: 700; font-family: var(--f-num); }
+.plan-out table { min-width: 0; margin-top: 6px; }
+.needn { margin-top: 4px; font-size: .85rem; color: var(--ink2); }
+.paste-hint .btn { margin-left: 6px; }
+.print-head { display: none; }
+.rulehits { margin: 4px 0 10px; padding: 0; list-style: none; font-size: .82rem; color: var(--warn); }
+select:disabled { opacity: .5; }
+@media print {
+  @page { size: A4; margin: 12mm; }
+  :root { --bg: #fff !important; }
+  body { background: #fff; font-size: 11px; }
+  header.top, footer, .no-print, .chart .save, .toast { display: none !important; }
+  .wrap { max-width: none; padding: 0; }
+  .box { border: 0; padding: 0; margin: 0; }
+  .box > h2 { font-size: 14px; }
+  .print-head { display: block; margin-bottom: 8px; font-size: 11px; color: #333; }
+  .print-head h1 { font-size: 16px; margin: 0 0 4px; }
+  .tbl-wrap { overflow: visible; border-color: #999; }
+  .tbl-wrap table { font-size: 9px; min-width: 0; width: 100%; }
+  th, td { position: static; padding: 3px 4px; white-space: normal; }
+  .charts { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .chart { break-inside: avoid; }
+  dl.kv { grid-template-columns: repeat(4, 1fr); }
+  .log li { padding-block: 1px; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+footer { margin-top: 32px; font-size: .78rem; color: var(--muted); }
+footer a { color: inherit; }
+/* ---- ここから測定システム解析の画面 ---- */
+.setup { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px 16px; align-items: end; }
+.setup .field input, .setup .field select { width: 100%; }
+.names { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; align-items: center; }
+.names input { width: 7em; }
+.tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+.tools .spacer { flex: 1; }
+.file-btn { position: relative; overflow: hidden; display: inline-block; }
+.file-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+table.grid td input { width: 6.5em; }
+table.grid td.sep, table.grid th.sep { border-left: 2px solid var(--ink2); }
+table.grid tr.sep td, table.grid tr.sep th { border-top: 2px solid var(--ink2); }
+table.grid th.cl { font-size: .78rem; padding: 4px 6px; text-align: center; white-space: nowrap; }
+table.grid td.rn { white-space: nowrap; }
+table.grid tr.refrow td input { font-weight: 700; background: var(--accent-weak); }
+table.grid td input.txt { width: 4.5em; text-align: center; font-family: var(--f-num); }
+table.grid td input.out { color: var(--ng); background: var(--ng-weak); font-weight: 700; }
+
+.banner { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; padding: 14px 16px; border-radius: var(--r); border: 1px solid var(--line); margin-bottom: 14px; }
+.banner .big { font-size: 1.35rem; font-weight: 700; }
+.banner .sub { font-size: .88rem; color: var(--ink2); }
+.banner.ok { background: var(--ok-weak); border-color: var(--ok); } .banner.ok .big { color: var(--ok); }
+.banner.cond { background: var(--warn-weak); border-color: var(--warn); } .banner.cond .big { color: var(--warn); }
+.banner.ng { background: var(--ng-weak); border-color: var(--ng); } .banner.ng .big { color: var(--ng); }
+.banner.none { background: var(--bg); }
+.tag { font-weight: 700; border-radius: 4px; padding: 1px 6px; font-size: .8rem; white-space: nowrap; }
+.tag.ok { background: var(--ok-weak); color: var(--ok); }
+.tag.cond { background: var(--warn-weak); color: var(--warn); }
+.tag.ng { background: var(--ng-weak); color: var(--ng); }
+.meter { margin: 6px 0 14px; }
+.meter .bar { position: relative; height: 18px; border-radius: 9px; overflow: hidden; display: flex; }
+.meter .bar span { display: block; height: 100%; }
+.meter .needle { position: relative; height: 0; }
+.meter .needle i { position: absolute; top: -26px; width: 3px; height: 26px; background: var(--ink); border-radius: 2px; transform: translateX(-1px); }
+.meter .needle b { position: absolute; top: -48px; transform: translateX(-50%); font-size: .8rem; font-family: var(--f-num); white-space: nowrap; background: var(--surface); padding: 0 4px; border-radius: 3px; }
+.meter .scale { position: relative; height: 16px; font-size: .7rem; color: var(--muted); font-family: var(--f-num); }
+.meter .scale span { position: absolute; transform: translateX(-50%); }
+.meter .cap { font-size: .8rem; color: var(--ink2); margin-bottom: 26px; }
+.pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 12px; }
+h3.sec { font-size: .95rem; margin: 18px 0 6px; }
+.subtle { color: var(--muted); font-size: .8rem; }
+.inline-opts { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; margin-top: 10px; }
+.inline-opts .field { flex-direction: row; align-items: center; gap: 6px; }
+.inline-opts input[type="number"] { width: 6.5em; }
+.tbl-wrap td.ok { color: var(--ok); font-weight: 700; } .tbl-wrap td.cond { color: var(--warn); font-weight: 700; } .tbl-wrap td.ng { color: var(--ng); font-weight: 700; }
+.empty { color: var(--muted); font-size: .9rem; padding: 12px 0; }
+.err-msg { color: var(--ng); font-weight: 700; }
+@media print {
+  .setup-box, .opts-box, .tools, .print-hide { display: none !important; }
+  .banner { padding: 6px 10px; margin-bottom: 6px; }
+  .meter .needle b { background: #fff; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <a class="home" href="https://kotaooka.github.io/" title="QC Workbench（ツール一覧）へ戻る">QC Workbench</a><span class="crumb" aria-hidden="true">›</span><h1>測定システム解析</h1>
+      <span class="std">AIAG MSA 第4版</span>
+      <button class="btn small theme" id="themeBtn" type="button" aria-label="表示テーマを切り替え">表示：自動</button>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-tab="grr" type="button">ゲージR&amp;R</button>
+      <button role="tab" aria-selected="false" data-tab="bias" type="button">偏り</button>
+      <button role="tab" aria-selected="false" data-tab="lin" type="button">直線性</button>
+      <button role="tab" aria-selected="false" data-tab="stab" type="button">安定性</button>
+      <button role="tab" aria-selected="false" data-tab="t1" type="button">Type-1</button>
+      <button role="tab" aria-selected="false" data-tab="attr" type="button">計数値</button>
+      <button role="tab" aria-selected="false" data-tab="explain" type="button">解説</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="print-head"><h1 id="printTitle">測定システム解析</h1><div id="printDate"></div></div>
+
+  <!-- ===== ゲージR&R ===== -->
+  <section data-panel="grr">
+    <div class="box setup-box">
+      <h2><span class="step">1</span>データ</h2>
+      <div class="setup">
+        <label class="field"><span class="lbl">測定者の人数</span><input type="number" id="grrK" min="2" max="10" step="1"></label>
+        <label class="field"><span class="lbl">繰り返しの回数</span><input type="number" id="grrR" min="2" max="10" step="1"></label>
+        <label class="field"><span class="lbl">部品の数</span><input type="number" id="grrN" min="2" max="50" step="1"></label>
+        <label class="field"><span class="lbl">公差幅（任意）</span><input type="number" id="grrTol" step="any" placeholder="例 0.2"></label>
+        <label class="field"><span class="lbl">工程の標準偏差（任意）</span><input type="number" id="grrSigP" step="any" placeholder="既知のときだけ"></label>
+      </div>
+      <div class="names" id="grrNames"></div>
+      <div class="tools">
+        <span class="file-btn btn">Excel・CSV を読み込む<input type="file" id="grrFile" accept=".xlsx,.csv,.tsv,.txt"></span>
+        <button class="btn" type="button" data-sample="grr">サンプルデータで試す</button>
+        <button class="btn danger" type="button" data-clear="grr">クリア</button>
+        <span class="spacer"></span>
+        <span class="saved hint" data-saved="grr"></span>
+      </div>
+      <p class="hint paste-hint">Excel の表をコピーして、表の左上のセルに貼り付けられます。行は「測定者 × 回」、列は「部品」です。測定者名・部品番号の見出しごと貼り付けても読み取ります。縦長の表（部品・測定者・回・測定値の 4 列）も読み込めます。</p>
+      <div class="grid-wrap" id="grrGrid"></div>
+      <p class="privacy">データはこの端末の中だけで計算し、外部に送信しません。入力は自動でこの端末に保存します。</p>
+    </div>
+    <div class="box opts-box">
+      <h2><span class="step">2</span>計算方法</h2>
+      <div class="inline-opts">
+        <span class="lbl">方式</span>
+        <div class="seg" id="grrMethod"><button type="button" data-v="anova">分散分析（ANOVA）法</button><button type="button" data-v="avgRange">平均・範囲法</button></div>
+        <span class="lbl">判定の基準</span>
+        <div class="seg" id="grrBasis"><button type="button" data-v="tv">全変動（%TV）</button><button type="button" data-v="tol">公差（%公差）</button></div>
+      </div>
+      <div class="inline-opts" id="grrAnovaOpts">
+        <label class="field"><span class="lbl">交互作用をプールする有意水準</span><input type="number" id="grrAlpha" step="0.01" min="0" max="1"></label>
+        <label class="chk"><input type="checkbox" id="grrKeepIA">交互作用を常に残す</label>
+      </div>
+      <div class="inline-opts" id="grrArOpts">
+        <label class="chk"><input type="checkbox" id="grrTableK">係数 K1・K2・K3 にマニュアルの表の値（4 桁）を使う</label>
+        <span class="hint">使わないときは数値積分で求めた値。結果の 4 桁目が変わることがあります</span>
+      </div>
+    </div>
+    <div class="box" id="grrOut"></div>
+  </section>
+
+  <!-- ===== 偏り ===== -->
+  <section data-panel="bias" hidden>
+    <div class="box setup-box">
+      <h2><span class="step">1</span>データ</h2>
+      <p class="hint">基準値（校正値）が分かっている部品を、同じ測定者が 10 回以上測った値を入力します。</p>
+      <div class="setup">
+        <label class="field"><span class="lbl">基準値</span><input type="number" id="biasRef" step="any"></label>
+        <label class="field"><span class="lbl">公差幅（任意）</span><input type="number" id="biasTol" step="any"></label>
+        <label class="field"><span class="lbl">全変動 σ（任意）</span><input type="number" id="biasTV" step="any" placeholder="GRR の TV など"></label>
+        <label class="field"><span class="lbl">有意水準</span><input type="number" id="biasAlpha" step="0.01" min="0.001" max="0.5"></label>
+      </div>
+      <div class="tools">
+        <span class="file-btn btn">Excel・CSV を読み込む<input type="file" id="biasFile" accept=".xlsx,.csv,.tsv,.txt"></span>
+        <button class="btn" type="button" data-sample="bias">サンプルデータで試す</button>
+        <button class="btn danger" type="button" data-clear="bias">クリア</button>
+        <span class="spacer"></span><span class="saved hint" data-saved="bias"></span>
+      </div>
+      <div class="grid-wrap" id="biasGrid"></div>
+    </div>
+    <div class="box" id="biasOut"></div>
+  </section>
+
+  <!-- ===== 直線性 ===== -->
+  <section data-panel="lin" hidden>
+    <div class="box setup-box">
+      <h2><span class="step">1</span>データ</h2>
+      <p class="hint">測定範囲にわたって基準値の異なる部品を 5 個以上選び、それぞれ 10 回以上測った値を入力します。表の 1 行目が基準値です。</p>
+      <div class="setup">
+        <label class="field"><span class="lbl">部品の数</span><input type="number" id="linG" min="2" max="30" step="1"></label>
+        <label class="field"><span class="lbl">測定回数（行数）</span><input type="number" id="linM" min="1" max="100" step="1"></label>
+        <label class="field"><span class="lbl">全変動 σ（任意）</span><input type="number" id="linTV" step="any" placeholder="GRR の TV など"></label>
+        <label class="field"><span class="lbl">有意水準</span><input type="number" id="linAlpha" step="0.01" min="0.001" max="0.5"></label>
+      </div>
+      <div class="tools">
+        <span class="file-btn btn">Excel・CSV を読み込む<input type="file" id="linFile" accept=".xlsx,.csv,.tsv,.txt"></span>
+        <button class="btn" type="button" data-sample="lin">サンプルデータで試す</button>
+        <button class="btn danger" type="button" data-clear="lin">クリア</button>
+        <span class="spacer"></span><span class="saved hint" data-saved="lin"></span>
+      </div>
+      <div class="grid-wrap" id="linGrid"></div>
+    </div>
+    <div class="box" id="linOut"></div>
+  </section>
+
+  <!-- ===== 安定性 ===== -->
+  <section data-panel="stab" hidden>
+    <div class="box setup-box">
+      <h2><span class="step">1</span>データ</h2>
+      <p class="hint">基準部品を定期的に（毎日・毎週など）測った値を、測った順に入力します。サブグループサイズが 2 以上なら、1 回に続けて測った個数ごとに区切って X̄-R 管理図、1 なら I-MR 管理図にします。</p>
+      <div class="setup">
+        <label class="field"><span class="lbl">サブグループサイズ</span><input type="number" id="stabM" min="1" max="10" step="1"></label>
+        <label class="field"><span class="lbl">基準値（任意）</span><input type="number" id="stabRef" step="any"></label>
+      </div>
+      <div class="tools">
+        <span class="file-btn btn">Excel・CSV を読み込む<input type="file" id="stabFile" accept=".xlsx,.csv,.tsv,.txt"></span>
+        <button class="btn" type="button" data-sample="stab">サンプルデータで試す</button>
+        <button class="btn danger" type="button" data-clear="stab">クリア</button>
+        <span class="spacer"></span><span class="saved hint" data-saved="stab"></span>
+      </div>
+      <div class="grid-wrap" id="stabGrid"></div>
+    </div>
+    <div class="box" id="stabOut"></div>
+  </section>
+
+  <!-- ===== Type-1 ===== -->
+  <section data-panel="t1" hidden>
+    <div class="box setup-box">
+      <h2><span class="step">1</span>データ</h2>
+      <p class="hint">基準部品を同じ位置で 25〜50 回続けて測った値を入力します。Type-1 は AIAG MSA 第4版には含まれない評価です（VDA 5 などで使われる一般的な式で計算します）。</p>
+      <div class="setup">
+        <label class="field"><span class="lbl">基準値</span><input type="number" id="t1Ref" step="any"></label>
+        <label class="field"><span class="lbl">公差幅</span><input type="number" id="t1Tol" step="any"></label>
+        <label class="field"><span class="lbl">公差に対する割合 K（%）</span><input type="number" id="t1K" step="any" min="1" max="100"></label>
+        <label class="field"><span class="lbl">ばらつきの幅 L（σ の倍数）</span><input type="number" id="t1L" step="any" min="1" max="12"></label>
+        <label class="field"><span class="lbl">判定の下限</span><input type="number" id="t1Limit" step="0.01" min="0"></label>
+      </div>
+      <div class="tools">
+        <span class="file-btn btn">Excel・CSV を読み込む<input type="file" id="t1File" accept=".xlsx,.csv,.tsv,.txt"></span>
+        <button class="btn" type="button" data-sample="t1">サンプルデータで試す</button>
+        <button class="btn danger" type="button" data-clear="t1">クリア</button>
+        <span class="spacer"></span><span class="saved hint" data-saved="t1"></span>
+      </div>
+      <div class="grid-wrap" id="t1Grid"></div>
+    </div>
+    <div class="box" id="t1Out"></div>
+  </section>
+
+  <!-- ===== 計数値 ===== -->
+  <section data-panel="attr" hidden>
+    <div class="box setup-box">
+      <h2><span class="step">1</span>データ</h2>
+      <p class="hint">合否などの判定を入力します（OK/NG、1/0、合格/不合格 など）。1 列目は基準の判定（分かっている場合）、2 列目以降は測定者ごと・回ごとの判定です。部品の並び順は回ごとに変えて判定するのが原則です。</p>
+      <div class="setup">
+        <label class="field"><span class="lbl">測定者の人数</span><input type="number" id="attrK" min="1" max="10" step="1"></label>
+        <label class="field"><span class="lbl">繰り返しの回数</span><input type="number" id="attrR" min="1" max="10" step="1"></label>
+        <label class="field"><span class="lbl">部品の数</span><input type="number" id="attrN" min="2" max="500" step="1"></label>
+        <label class="field"><span class="lbl">不合格を表す値</span><select id="attrBad"></select></label>
+      </div>
+      <div class="names" id="attrNames"></div>
+      <div class="tools">
+        <span class="file-btn btn">Excel・CSV を読み込む<input type="file" id="attrFile" accept=".xlsx,.csv,.tsv,.txt"></span>
+        <button class="btn" type="button" data-sample="attr">サンプルデータで試す</button>
+        <button class="btn danger" type="button" data-clear="attr">クリア</button>
+        <span class="spacer"></span><span class="saved hint" data-saved="attr"></span>
+      </div>
+      <p class="hint paste-hint">Excel の表（見出し行と部品番号の列があってもよい）をコピーして、表の左上のセルに貼り付けられます。</p>
+      <div class="grid-wrap" id="attrGrid"></div>
+    </div>
+    <div class="box" id="attrOut"></div>
+  </section>
+
+  <!-- ===== 解説 ===== -->
+  <section data-panel="explain" hidden>
+    <div class="box explain">
+<!--EXPLAIN-START-->
+<h1>測定システム解析（MSA）の解説</h1>
+<p>このツールは AIAG『Measurement Systems Analysis Reference Manual』第4版（2010）の手順で計算します。Type-1（Cg・Cgk）だけは第4版に含まれないため、VDA 5 などで使われる一般的な式で計算します。</p>
+<h2>ゲージR&amp;R（計量値）</h2>
+<p>複数の測定者が、複数の部品を、それぞれ複数回測ったデータから、測定のばらつきを「繰り返し性」と「再現性」に分けます。</p>
+<ul>
+<li><strong>繰り返し性（EV）</strong>：同じ測定者が同じ部品を繰り返し測ったときのばらつき（主に測定器）</li>
+<li><strong>再現性（AV）</strong>：測定者による平均の違い</li>
+<li><strong>交互作用（IA）</strong>：部品によって測定者の差が変わる成分（ANOVA 法だけ）</li>
+<li><strong>GRR</strong> = √(EV² + AV² + IA²)、<strong>部品変動（PV）</strong>、<strong>全変動（TV）</strong> = √(GRR² + PV²)</li>
+</ul>
+<p>表の値はすべて標準偏差（σ）です。6σ は「調査の変動」の幅、%寄与は分散の比、%TV と %公差は標準偏差の比です。</p>
+<h3>判定の目安（AIAG）</h3>
+<table>
+<thead>
+<tr>
+<th>%GRR</th>
+<th>判定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10% 未満</td>
+<td>合格</td>
+</tr>
+<tr>
+<td>10〜30%</td>
+<td>条件付き（用途の重要度、測定器の費用、修理費などを考えて判断）</td>
+</tr>
+<tr>
+<td>30% 超</td>
+<td>不合格（改善が必要）</td>
+</tr>
+</tbody>
+</table>
+<p>あわせて <strong>ndc（区別できる区分の数）</strong> = 1.41 × PV / GRR（切り捨て）が 5 以上であることを確認します。</p>
+<p>%GRR の分母は、工程管理に使う測定なら全変動（%TV）、製品の合否判定に使う測定なら公差（%公差 = 6 × GRR / 公差幅）が適しています。調査に使った部品のばらつきが工程を代表していないときは、既知の工程の標準偏差を入力すると、それを全変動として使います（PV = √(TV² − GRR²)）。</p>
+<h3>平均・範囲法</h3>
+<ul>
+<li>EV = R̿ × K1（K1 = 1/d2、d2 は回数で決まる）</li>
+<li>AV = √[(X̄diff × K2)² − EV² / (n r)]（根号の中が負なら 0）</li>
+<li>PV = Rp × K3</li>
+<li>K2・K3 は 1 組だけの範囲から σ を推定する係数 1/d2*（測定者数・部品数で決まる）</li>
+</ul>
+<p>このツールは d2・d2* を数値積分で求めます。マニュアルの表（4 桁）とは最後の桁が違うことがあるので、マニュアルの例題や他のソフトと突き合わせるときは「係数にマニュアルの表の値を使う」を選んでください。</p>
+<p>範囲の管理図で上限（D4 × R̿）を超える点は、測り間違いや測定方法のばらつきを疑い、測り直してから解析します。平均の管理図では、管理限界の外に半分以上の点があるのが望ましい状態です（部品のばらつきを測定システムが見分けられている）。</p>
+<h3>分散分析（ANOVA）法</h3>
+<p>部品 × 測定者の二元配置（繰り返しあり）の分散分析から分散成分を求めます。</p>
+<ul>
+<li>繰り返し性 = MS(誤差)</li>
+<li>交互作用 = (MS(部品×測定者) − MS(誤差)) / r</li>
+<li>再現性 = (MS(測定者) − MS(部品×測定者)) / (n r)</li>
+<li>部品変動 = (MS(部品) − MS(部品×測定者)) / (k r)</li>
+</ul>
+<p>負になった成分は 0 とします。交互作用が有意でないとき（既定は p &gt; 0.05）は、交互作用を誤差にまとめて（プールして）計算し直します。交互作用を見落とさない点と、データから求める推定の精度が高い点で、ANOVA 法を推奨します。</p>
+<h3>データの集め方</h3>
+<ul>
+<li>部品は工程のばらつきの範囲を代表するものを 10 個程度、測定者 2〜3 人、繰り返し 2〜3 回</li>
+<li>部品の順番は回ごとに無作為に変え、測定者が前の値を知らない状態で測る</li>
+<li>測定器の分解能は、公差（または工程変動）の 1/10 以下</li>
+</ul>
+<h2>偏り（独立サンプル法）</h2>
+<p>基準値が分かっている部品を 10 回以上測り、平均と基準値の差（偏り）が 0 と見なせるかを t 検定で確かめます。</p>
+<ul>
+<li>偏り = 平均 − 基準値、σr = 測定値の標準偏差、σb = σr / √n</li>
+<li>偏りの信頼区間 = 偏り ± t(n−1, 1−α/2) × σb</li>
+</ul>
+<p>信頼区間が 0 を含めば、偏りは許容できます。</p>
+<h2>直線性</h2>
+<p>測定範囲にわたる基準値の部品を 5 個以上、それぞれ 10 回以上測り、偏り（測定値 − 基準値）を基準値に回帰します。</p>
+<ul>
+<li>回帰直線：偏り = b + a × 基準値</li>
+<li>信頼帯：b + a x ± t(gm−2, 1−α/2) × √(1/gm + (x − x̄)² / Σ(xi − x̄)²) × s</li>
+</ul>
+<p>「偏り = 0」の水平線が、測定範囲全体で信頼帯の中に収まれば直線性は許容できます。傾き・切片の t 検定もあわせて表示します。全変動 σ を入れると、%直線性（|a| × 100）と直線性（|a| × 6σ）を表示します。</p>
+<h2>安定性</h2>
+<p>基準部品を定期的に測った値を管理図にし、時間とともに偏りやばらつきが変わらないかを見ます。管理図の異常判定は JIS Z 9020-2（ISO 7870-2）の 8 つのルールです。サブグループサイズ 1 のときは I-MR 管理図、2 以上のときは X̄-R 管理図にします。</p>
+<h2>Type-1（Cg・Cgk）</h2>
+<p>AIAG MSA 第4版には含まれません。1 つの基準部品を同じ位置で 25〜50 回続けて測り、測定器だけの繰り返し性と偏りを評価します。</p>
+<ul>
+<li>Cg = (K × 公差) / (L × s)</li>
+<li>Cgk = (K/2 × 公差 − |平均 − 基準値|) / (L/2 × s)</li>
+</ul>
+<p>一般的な設定は K = 20%、L = 6（s の 6 倍）、判定の下限 1.33 です。社内規定や顧客の要求に合わせて変えられます。</p>
+<h2>計数値（クロス表法）</h2>
+<p>合否判定のように数値でない測定について、50 個程度の部品を測定者 3 人が 3 回ずつ判定したデータから評価します。</p>
+<ul>
+<li><strong>κ（カッパ）</strong>：偶然の一致を除いた一致の度合い。κ = (一致率 − 偶然の一致率) / (1 − 偶然の一致率)。0.75 を超えれば良い一致、0.40 未満は一致が悪い</li>
+<li><strong>有効性</strong>：全回とも基準と一致した部品の割合（90% 以上 合格、80〜90% 条件付き、80% 未満 不合格）</li>
+<li><strong>ミス率</strong>：不合格品を合格と判定した割合（2% 以下 合格、2〜5% 条件付き、5% 超 不合格）</li>
+<li><strong>誤警報率</strong>：合格品を不合格と判定した割合（5% 以下 合格、5〜10% 条件付き、10% 超 不合格）</li>
+</ul>
+<p>有効性の信頼区間は二項分布の正確な区間（Clopper-Pearson）です。基準の判定がないときは、測定者どうしの κ と自己一致（全回で同じ判定をした部品の割合）だけを計算します。部品には合格・不合格の境目に近いものを含めないと、測定システムの弱点が見えません。</p>
+<!--EXPLAIN-END-->
+    </div>
+  </section>
+
+  <footer>
+    <a href="https://github.com/kotaooka/msa-calc">GitHub</a> ・ MIT License
+  </footer>
+</main>
+<div class="toast" id="toast" hidden></div>
+<script src="js/stats.js"></script>
+<script src="js/msa.js"></script>
+<script src="js/xlsx.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/table.js"></script>
+<script src="js/importer.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
