@@ -148,8 +148,16 @@
 
   // ---------- テーマ ----------
   const THEMES = ['auto', 'light', 'dark'], THEME_LABEL = { auto: '表示：自動', light: '表示：ライト', dark: '表示：ダーク' };
-  let theme = 'auto';
-  try { theme = localStorage.getItem('msa-calc-theme') || 'auto'; } catch (e) { /* 保存できない環境 */ }
+  // 表示テーマは QC Workbench の全ツールで共通のキーに保存する（旧キーの値は最初の1回だけ引き継ぐ）
+  const THEME_KEY = 'qc-workbench-theme', OLD_THEME_KEY = 'msa-calc-theme';
+  const readTheme = () => {
+    try {
+      let t = localStorage.getItem(THEME_KEY);
+      if (t == null) { t = localStorage.getItem(OLD_THEME_KEY); if (THEMES.includes(t)) localStorage.setItem(THEME_KEY, t); }
+      return THEMES.includes(t) ? t : 'auto';
+    } catch (e) { return 'auto'; }
+  };
+  let theme = readTheme();
   function applyTheme(t) {
     if (t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.dataset.theme = t;
     $('#themeBtn').textContent = THEME_LABEL[t];
@@ -157,9 +165,11 @@
   }
   $('#themeBtn').addEventListener('click', () => {
     theme = THEMES[(THEMES.indexOf(theme) + 1) % 3];
-    try { localStorage.setItem('msa-calc-theme', theme); } catch (e) { /* 無視 */ }
+    try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* 無視 */ }
     applyTheme(theme);
   });
+  // 別のタブや別のツールで切り替えたら、このページにも反映する
+  window.addEventListener('storage', e => { if (e.key === THEME_KEY || e.key === null) { theme = readTheme(); applyTheme(theme); } });
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (theme === 'auto') redrawCharts(); });
 
   // ---------- タブ ----------
