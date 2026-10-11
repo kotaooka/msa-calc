@@ -17,5 +17,7 @@ jobs:
         run: python tools/build.py && git diff --exit-code index.html
       - name: 計算・表の読み取りのテスト（コミット済みの参照値）
         run: node tests/test.js
+      - name: NIST の認証値との照合
+        run: node tests/published.js
       - name: 最新の scipy・statsmodels で参照値を作り直して再テスト
         run: python tests/make_reference.py && node tests/test.js

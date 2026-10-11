@@ -140,9 +140,13 @@
   // ---- 分散分析（ANOVA）法 ----
   // 二元配置（部品 × 測定者、交互作用あり）。opt.alphaInteraction（既定 0.05）で交互作用が有意でなければ誤差にプールする。
   // opt.keepInteraction が true なら常に交互作用を残す
-  function grrAnova(data, opt = {}) {
-    const { k, r, n } = shapeOf(data);
+  function grrAnova(dataIn, opt = {}) {
+    const { k, r, n } = shapeOf(dataIn);
     const N = k * r * n;
+    // 平方和は値を一定量ずらしても変わらない。桁の大きい値（例：1000000.4）をそのまま足し込むと
+    // 総平均の丸め誤差で平方和の桁落ちが起きるため、最初の値を引いてから計算し、平均だけ最後に戻す
+    const c0 = dataIn[0][0][0];
+    const data = dataIn.map(at => at.map(tr => tr.map(v => v - c0)));
     const all = data.flat(2), gm = mean(all);
     const cellMean = data.map(at => Array.from({ length: n }, (_, p) => mean(at.map(tr => tr[p]))));
     const aMean = data.map(at => mean(at.flat()));
@@ -192,7 +196,8 @@
       : opt.keepInteraction ? '設定により交互作用を残して計算しました' : `部品×測定者の交互作用が有意です（p = ${fmt(pAP, 3)} ≤ ${alphaI}）。測定者によって部品ごとの測り方に差があります`);
     return Object.assign(res, {
       method: 'anova', k, r, n, table, pooled, pInteraction: pAP, alphaInteraction: alphaI,
-      varComp: { EV: EV2, AV: AV2, IA: IA2, PV: PV2 }, cellMean, aMean, pMean, grandMean: gm,
+      varComp: { EV: EV2, AV: AV2, IA: IA2, PV: PV2 },
+      cellMean: cellMean.map(row => row.map(v => v + c0)), aMean: aMean.map(v => v + c0), pMean: pMean.map(v => v + c0), grandMean: gm + c0,
     });
   }
 
