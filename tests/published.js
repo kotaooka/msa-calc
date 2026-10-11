@@ -1,6 +1,6 @@
 // 第三者が公開している認証値との照合テスト（node tests/published.js）。不一致が1件でもあれば終了コード 1
 // tests/test.js が「別の方法で自分で計算した参照値」との照合なのに対し、ここでは答えが公開されているものだけを使う。
-// 使うのは NIST StRD（Statistical Reference Datasets）。米国政府の著作物で自由に使え、
+// 使うのは NIST StRD（Statistical Reference Datasets）。米国政府の著作物で米国では著作権の対象外（17 U.S.C. §105）。
 // 統計ソフトの計算精度を確かめるために作られたデータと、その認証値（15 桁）が公開されている。
 // データファイルは tests/published/ に原本のまま置いている
 'use strict';
