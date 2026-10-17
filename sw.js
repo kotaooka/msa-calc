@@ -1,6 +1,6 @@
 // 測定システム解析の Service Worker
 // 公開ファイルを更新したら VERSION を上げる。古いキャッシュは activate 時に削除される
-const VERSION = 'v1.0.4';
+const VERSION = 'v1.0.5';
 const APP_CACHE = `msa-calc-${VERSION}`;
 const FONT_CACHE = 'msa-calc-fonts';
 
