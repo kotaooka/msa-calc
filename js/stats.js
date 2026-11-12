@@ -367,22 +367,22 @@
   function sigmaFromGroups(groups) {
     const use = groups.filter(g => FACTORS[g.length]);
     const excluded = groups.length - use.length;
-    if (use.length < 2) return { sigma: null, reason: `サイズ 2〜10 のサブグループが ${use.length} 組しかないため群内変動を推定できません（2組以上必要）`, k: use.length, excluded };
+    if (use.length < 2) return { sigma: null, reason: `サイズ2〜10のサブグループが${use.length}組しかないため群内変動を推定できません（2組以上必要）`, k: use.length, excluded };
     let s = 0;
     for (const g of use) s += (Math.max(...g) - Math.min(...g)) / factor(g.length, 'd2');
     const sizes = use.map(g => g.length), lo = Math.min(...sizes), hi = Math.max(...sizes);
-    return { sigma: s / use.length, method: lo === hi ? `R̄/d2（n=${lo}）` : `R/d2 の平均（n=${lo}〜${hi}）`, k: use.length, excluded };
+    return { sigma: s / use.length, method: lo === hi ? `R̄/d2（n=${lo}）` : `R/d2の平均（n=${lo}〜${hi}）`, k: use.length, excluded };
   }
   function sigmaWithin(x, m) {
     if (m === 1) {
       if (x.length < 2) return { sigma: null, reason: 'データが2点未満のため移動範囲を計算できません', k: 0 };
       let s = 0;
       for (let i = 1; i < x.length; i++) s += Math.abs(x[i] - x[i - 1]);
-      return { sigma: s / (x.length - 1) / factor(2, 'd2'), method: 'MR̄/d2（移動範囲 n=2）', k: x.length - 1 };
+      return { sigma: s / (x.length - 1) / factor(2, 'd2'), method: 'MR̄/d2（移動範囲n=2）', k: x.length - 1 };
     }
-    if (!FACTORS[m]) return { sigma: null, reason: `サブグループサイズ ${m} の係数がありません`, k: 0 };
+    if (!FACTORS[m]) return { sigma: null, reason: `サブグループサイズ${m}の係数がありません`, k: 0 };
     const { groups } = consecutiveGroups(x, m);
-    if (groups.length < 2) return { sigma: null, reason: `完全なサブグループが ${groups.length} 組しかないため群内変動を推定できません（2組以上必要）`, k: groups.length };
+    if (groups.length < 2) return { sigma: null, reason: `完全なサブグループが${groups.length}組しかないため群内変動を推定できません（2組以上必要）`, k: groups.length };
     return sigmaFromGroups(groups);
   }
   function indices(mu, sigma, usl, lsl) {
@@ -437,22 +437,22 @@
     const mu = mean(x), s = sd(x, ddof);
     const w = groups ? sigmaFromGroups(groups) : sigmaWithin(x, m);
     let sw = w.sigma;
-    if (sw == null) notes.push(`Cp/Cpk を計算できません: ${w.reason}`);
+    if (sw == null) notes.push(`Cp/Cpkを計算できません: ${w.reason}`);
     else {
       if (groups) {
-        if (w.excluded) notes.push(`サイズが 2〜10 でないサブグループ ${w.excluded} 組は σ(群内) の推定から除外しました`);
-        if (w.k < RECOMMENDED_SUBGROUPS) notes.push(`サブグループ数が ${w.k} 組です（工程能力の調査では ${RECOMMENDED_SUBGROUPS} 組程度が目安）`);
+        if (w.excluded) notes.push(`サイズが2〜10でないサブグループ${w.excluded}組はσ(群内) の推定から除外しました`);
+        if (w.k < RECOMMENDED_SUBGROUPS) notes.push(`サブグループ数が${w.k}組です（工程能力の調査では${RECOMMENDED_SUBGROUPS}組程度が目安）`);
       } else if (m >= 2) {
         const left = n - w.k * m;
-        if (left) notes.push(`サブグループに満たない末尾 ${left} 点は σ(群内) の推定から除外しました`);
-        if (w.k < RECOMMENDED_SUBGROUPS) notes.push(`サブグループ数が ${w.k} 組です（工程能力の調査では ${RECOMMENDED_SUBGROUPS} 組程度が目安）`);
-      } else if (n - 1 < RECOMMENDED_SUBGROUPS) notes.push(`移動範囲が ${n - 1} 個です（${RECOMMENDED_SUBGROUPS} 個程度が目安）`);
-      if (sw === 0) { notes.push('σ(群内) が 0 のため Cp/Cpk を計算できません'); sw = null; }
+        if (left) notes.push(`サブグループに満たない末尾${left}点はσ(群内) の推定から除外しました`);
+        if (w.k < RECOMMENDED_SUBGROUPS) notes.push(`サブグループ数が${w.k}組です（工程能力の調査では${RECOMMENDED_SUBGROUPS}組程度が目安）`);
+      } else if (n - 1 < RECOMMENDED_SUBGROUPS) notes.push(`移動範囲が${n - 1}個です（${RECOMMENDED_SUBGROUPS}個程度が目安）`);
+      if (sw === 0) { notes.push('σ(群内) が0のためCp/Cpkを計算できません'); sw = null; }
     }
     const [Cp, Cpk, Cpu, Cpl] = indices(mu, sw, usl, lsl);
     const [Pp, Ppk, Ppu, Ppl] = indices(mu, s, usl, lsl);
     if (Cpk != null && Ppk != null && Ppk > 0 && Cpk / Ppk > 1.33)
-      notes.push('Cpk が Ppk を大きく上回っています。サブグループ間の変動（平均のずれ・ドリフト）が大きく、工程が統計的管理状態にない可能性があります。管理図を確認してください');
+      notes.push('CpkがPpkを大きく上回っています。サブグループ間の変動（平均のずれ・ドリフト）が大きく、工程が統計的管理状態にない可能性があります。管理図を確認してください');
     return {
       n, mean: mu, sigmaWithin: sw, sigmaWithinMethod: sw != null ? w.method : null, subgroups: w.k, sigmaOverall: s,
       Cp, Cpk, Cpu, Cpl, Pp, Ppk, Ppu, Ppl, PpCI: cpCI(Pp, n, alpha), PpkCI: cpkCI(Ppk, n, alpha),
@@ -498,14 +498,14 @@
   // 管理図の異常判定ルール（JIS Z 9020-2 / ISO 7870-2 の 8 つのルール。Nelson のルールと同じ）
   // z = (点 − 中心線) / σ。領域 C: |z| < 1、B: 1〜2、A: 2〜3
   const RULES = {
-    1: '管理限界の外（領域 A を超える）',
-    2: '連続 9 点が中心線の片側',
-    3: '連続 6 点が増加または減少',
-    4: '連続 14 点が交互に増減',
-    5: '連続 3 点中 2 点が領域 A 以上（同じ側）',
-    6: '連続 5 点中 4 点が領域 B 以上（同じ側）',
-    7: '連続 15 点が領域 C（中心線 ±1σ 以内）',
-    8: '連続 8 点が領域 C の外（両側）',
+    1: '管理限界の外（領域Aを超える）',
+    2: '連続9点が中心線の片側',
+    3: '連続6点が増加または減少',
+    4: '連続14点が交互に増減',
+    5: '連続3点中2点が領域A以上（同じ側）',
+    6: '連続5点中4点が領域B以上（同じ側）',
+    7: '連続15点が領域C（中心線 ±1σ以内）',
+    8: '連続8点が領域Cの外（両側）',
   };
   // 戻り値: [{ rule, from, to, points: [番号...] }]（番号は 0 始まり。連続して当てはまる検出は 1 件にまとめる）
   function runRules(c, rules = [1, 2, 3, 4, 5, 6, 7, 8]) {

@@ -143,7 +143,7 @@
       + `<div class="needle"><i style="left:${p(v)}%"></i><b style="left:${Math.min(94, Math.max(6, p(v)))}%">${pct(v, 1)}</b></div>`
       + `<div class="scale">${[0, 10, 20, 30, 40, 50].map(t => `<span style="left:${p(t)}%">${t}${t === 50 ? '%+' : '%'}</span>`).join('')}</div></div>`;
   }
-  const tools = tab => `<div class="tools no-print"><button class="btn" type="button" data-print="${tab}">印刷・PDF</button><button class="btn" type="button" data-xlsx="${tab}">結果を Excel で保存</button></div>`;
+  const tools = tab => `<div class="tools no-print"><button class="btn" type="button" data-print="${tab}">印刷・PDF</button><button class="btn" type="button" data-xlsx="${tab}">結果をExcelで保存</button></div>`;
   const results = {}; // タブごとの最新の結果（Excel 保存用）
 
   // ---------- テーマ ----------
@@ -203,7 +203,7 @@
   function fileInput(id, onRows) {
     $(id).addEventListener('change', async e => {
       const f = e.target.files[0]; if (!f) return;
-      try { onRows(await readFile(f)); toast(`${f.name} を読み込みました`); } catch (err) { toast('読み込めませんでした：' + err.message); console.error(err); }
+      try { onRows(await readFile(f)); toast(`${f.name}を読み込みました`); } catch (err) { toast('読み込めませんでした：' + err.message); console.error(err); }
       e.target.value = '';
     });
   }
@@ -298,7 +298,7 @@
     const { data, miss } = grrData();
     const total = G.k * G.r * G.n;
     if (miss.length === total) { out.innerHTML = '<h2><span class="step">3</span>結果</h2><p class="empty">測定値を入力するか、「サンプルデータで試す」を押してください。</p>'; results.grr = null; return; }
-    if (miss.length) { out.innerHTML = `<h2><span class="step">3</span>結果</h2><p class="empty">未入力・数値でないセルが ${miss.length} 個あります（${esc(miss.slice(0, 5).join('、'))}${miss.length > 5 ? ' ほか' : ''}）。全セルの入力が必要です。</p>`; results.grr = null; return; }
+    if (miss.length) { out.innerHTML = `<h2><span class="step">3</span>結果</h2><p class="empty">未入力・数値でないセルが${miss.length}個あります（${esc(miss.slice(0, 5).join('、'))}${miss.length > 5 ? ' ほか' : ''}）。全セルの入力が必要です。</p>`; results.grr = null; return; }
     const tol = num(G.tol), sigP = num(G.sigP);
     const opt = { tol: tol > 0 ? tol : null, sigmaProcess: sigP > 0 ? sigP : null, alphaInteraction: num(G.alpha) ?? 0.05, keepInteraction: G.keepIA, tableK: G.tableK };
     let R, other;
@@ -316,26 +316,26 @@
     for (const s of R.notes) notesList.push([/有意です|超えた|望ましく|負/.test(s) ? 'warn' : 'info', s]);
     if (R.tvSource === 'process') notesList.push(['info', '全変動（TV）に入力した工程の標準偏差を使いました']);
     const basisLabel = useTol ? '%GRR（公差に対する割合）' : (R.tvSource === 'process' ? '%GRR（工程変動に対する割合）' : '%GRR（全変動に対する割合）');
-    const sub = `${basisLabel} ${pct(main)} ${tag(lvPct)} ／ 区別できる区分の数 ndc = ${R.ndc} ${tag(lvNdc, R.ndc >= 5 ? '5 以上' : '5 未満')}`;
+    const sub = `${basisLabel} ${pct(main)} ${tag(lvPct)} ／ 区別できる区分の数ndc = ${R.ndc} ${tag(lvNdc, R.ndc >= 5 ? '5以上' : '5未満')}`;
     const big = lv === 'ok' ? '測定システムは合格' : lv === 'cond' ? '条件付きで合格（用途・費用を考えて判断）' : '測定システムは不合格（改善が必要）';
     const hasIA = R.IA != null;
     const rows = R.rows.map(x => [
       { EV: '繰り返し性（EV）', AV: '再現性（AV）', IA: '交互作用（IA）', GRR: 'ゲージR&R（GRR）', PV: '部品変動（PV）', TV: '全変動（TV）' }[x.name],
       sig(x.sd), sig(x.sv), pct(x.pctContrib), x.name === 'GRR' ? { v: pct(x.pctTV), cls: M.judgePct(x.pctTV) } : pct(x.pctTV), x.pctTol == null ? '―' : x.name === 'GRR' ? { v: pct(x.pctTol), cls: M.judgePct(x.pctTol) } : pct(x.pctTol),
     ]);
-    let h = `<h2><span class="step">3</span>結果</h2>` + banner(lv, big, sub) + meter(main, basisLabel + '　10% 未満 合格／10〜30% 条件付き／30% 超 不合格');
+    let h = `<h2><span class="step">3</span>結果</h2>` + banner(lv, big, sub) + meter(main, basisLabel + '　10%未満 合格／10〜30%条件付き／30%超 不合格');
     h += kv([
-      ['方式', G.method === 'anova' ? 'ANOVA 法' : '平均・範囲法'],
+      ['方式', G.method === 'anova' ? 'ANOVA法' : '平均・範囲法'],
       ['測定者 × 回 × 部品', `${R.k} × ${R.r} × ${R.n}`],
-      ['GRR（σ）', sig(R.GRR)], ['%GRR（対 TV）', pct(R.pctGRR)], ['%GRR（対公差）', pct(R.pctTolGRR)],
+      ['GRR（σ）', sig(R.GRR)], ['%GRR（対TV）', pct(R.pctGRR)], ['%GRR（対公差）', pct(R.pctTolGRR)],
       ['ndc', String(R.ndc), `1.41 × PV/GRR = ${sig(R.ndcRaw, 3)}`],
-      [G.method === 'anova' ? '平均・範囲法では' : 'ANOVA 法では', pct(useTol ? other.pctTolGRR : other.pctGRR), `ndc ${other.ndc}`],
+      [G.method === 'anova' ? '平均・範囲法では' : 'ANOVA法では', pct(useTol ? other.pctTolGRR : other.pctGRR), `ndc ${other.ndc}`],
     ]);
-    h += `<h3 class="sec">変動の内訳</h3>` + table(['要因', '標準偏差 σ', '6σ', '%寄与（分散）', '%TV', '%公差'], rows);
+    h += `<h3 class="sec">変動の内訳</h3>` + table(['要因', '標準偏差σ', '6σ', '%寄与（分散）', '%TV', '%公差'], rows);
     if (G.method === 'anova') {
-      h += `<h3 class="sec">分散分析表</h3>` + table(['要因', '自由度', '平方和', '平均平方', 'F', 'p 値'], R.table.map(t => [t.source, String(t.df), sig(t.ss, 5), t.ms == null ? '' : sig(t.ms, 5), t.F == null ? '' : fix(t.F, 3), t.p == null ? '' : pval(t.p)]));
+      h += `<h3 class="sec">分散分析表</h3>` + table(['要因', '自由度', '平方和', '平均平方', 'F', 'p値'], R.table.map(t => [t.source, String(t.df), sig(t.ss, 5), t.ms == null ? '' : sig(t.ms, 5), t.F == null ? '' : fix(t.F, 3), t.p == null ? '' : pval(t.p)]));
     } else {
-      h += `<h3 class="sec">計算の途中</h3>` + table(['測定者', '範囲の平均 R̄', '平均 X̄'], R.Rbar.map((rb, a) => [esc(G.names[a]), sig(rb), sig(R.Xbar[a])]))
+      h += `<h3 class="sec">計算の途中</h3>` + table(['測定者', '範囲の平均R̄', '平均X̄'], R.Rbar.map((rb, a) => [esc(G.names[a]), sig(rb), sig(R.Xbar[a])]))
         + kv([['R̿', sig(R.Rbb)], ['X̄diff', sig(R.Xdiff)], ['Rp（部品平均の範囲）', sig(R.Rp)], ['K1', sig(R.K1)], ['K2', sig(R.K2)], ['K3', sig(R.K3)], ['UCL(R) = D4 × R̿', sig(R.rChart.ucl)]]);
     }
     h += notes(notesList.length ? notesList : []);
@@ -430,7 +430,7 @@
   function biasCompute() {
     const out = $('#biasOut'), x = values(B), ref = num(B.ref);
     const head = '<h2><span class="step">2</span>結果</h2>';
-    if (x.length < 2) { out.innerHTML = head + '<p class="empty">測定値を 2 個以上入力してください（10 回以上を推奨）。</p>'; results.bias = null; return; }
+    if (x.length < 2) { out.innerHTML = head + '<p class="empty">測定値を2個以上入力してください（10回以上を推奨）。</p>'; results.bias = null; return; }
     if (ref == null) { out.innerHTML = head + '<p class="empty">基準値を入力してください。</p>'; results.bias = null; return; }
     let R;
     try { R = M.bias(x, ref, { alpha: num(B.alpha) ?? 0.05, tol: num(B.tol), tv: num(B.tv) }); } catch (e) { out.innerHTML = head + `<p class="err-msg">${esc(e.message)}</p>`; return; }
@@ -438,12 +438,12 @@
     const lv = R.acceptable ? 'ok' : 'ng';
     const conf = Math.round((1 - R.alpha) * 1000) / 10;
     const n = [];
-    if (badCount(B)) n.push(['warn', `数値でないセル ${badCount(B)} 個は除きました`]);
+    if (badCount(B)) n.push(['warn', `数値でないセル${badCount(B)}個は除きました`]);
     R.notes.forEach(s => n.push(['warn', s]));
-    let h = head + banner(lv, R.acceptable ? '偏りは 0 と見なせる（許容できる）' : '偏りがある（0 と見なせない）', `偏り ${sig(R.bias)} ／ ${conf}% 信頼区間 ${sig(R.ci[0])} 〜 ${sig(R.ci[1])}（0 を${R.acceptable ? '含む' : '含まない'}）`);
+    let h = head + banner(lv, R.acceptable ? '偏りは0と見なせる（許容できる）' : '偏りがある（0と見なせない）', `偏り${sig(R.bias)} ／ ${conf}%信頼区間${sig(R.ci[0])} 〜 ${sig(R.ci[1])}（0を${R.acceptable ? '含む' : '含まない'}）`);
     h += kv([
-      ['測定回数 n', String(R.n)], ['平均', sig(R.mean, 6)], ['基準値', sig(R.ref, 6)], ['偏り', sig(R.bias)],
-      ['繰り返し性 σr', sig(R.sigmaR)], ['偏りの標準誤差 σb', sig(R.sigmaB)], ['t 値', fix(R.t, 3), `自由度 ${R.df}、臨界値 ${fix(R.tCrit, 3)}`], ['p 値', pval(R.p)],
+      ['測定回数n', String(R.n)], ['平均', sig(R.mean, 6)], ['基準値', sig(R.ref, 6)], ['偏り', sig(R.bias)],
+      ['繰り返し性σr', sig(R.sigmaR)], ['偏りの標準誤差σb', sig(R.sigmaB)], ['t値', fix(R.t, 3), `自由度${R.df}、臨界値${fix(R.tCrit, 3)}`], ['p値', pval(R.p)],
       ['偏り／公差', pct(R.pctBiasTol)], ['偏り／全変動（6σ）', pct(R.pctBiasTV)], ['6σr／公差', pct(R.pctEVTol)],
     ]);
     h += notes(n);
@@ -511,23 +511,23 @@
       const x = Lr.cells.slice(1).map(row => num(row[c])).filter(v => v != null);
       if (ref != null && x.length) parts.push({ ref, x });
     }
-    if (parts.length < 2) { out.innerHTML = head + '<p class="empty">基準値（1 行目）と測定値のある部品を 2 個以上入力してください（5 個以上を推奨）。</p>'; results.lin = null; return; }
+    if (parts.length < 2) { out.innerHTML = head + '<p class="empty">基準値（1行目）と測定値のある部品を2個以上入力してください（5個以上を推奨）。</p>'; results.lin = null; return; }
     let R;
     try { R = M.linearity(parts, { alpha: num(Lr.alpha) ?? 0.05, tv: num(Lr.tv) }); } catch (e) { out.innerHTML = head + `<p class="err-msg">${esc(e.message)}</p>`; results.lin = null; return; }
     results.lin = R;
     const lv = R.acceptable ? 'ok' : 'ng';
     const n = R.notes.map(s => ['warn', s]);
     const skipped = Lr.g - parts.length;
-    if (skipped) n.push(['info', `基準値か測定値のない部品 ${skipped} 個は除きました`]);
-    if (!R.slopeOk) n.push(['warn', `傾きが 0 でない（|t| = ${fix(R.tSlope, 3)} > ${fix(R.tCrit, 3)}）。測定範囲の位置によって偏りが変わります`]);
-    if (!R.interceptOk) n.push(['warn', `切片が 0 でない（|t| = ${fix(R.tIntercept, 3)} > ${fix(R.tCrit, 3)}）`]);
-    let h = head + banner(lv, R.acceptable ? '直線性は許容できる' : '直線性に問題がある', `「偏り = 0」の線が回帰直線の ${Math.round((1 - (num(Lr.alpha) ?? 0.05)) * 1000) / 10}% 信頼帯の${R.acceptable ? '中に収まる' : '外に出る'}`);
+    if (skipped) n.push(['info', `基準値か測定値のない部品${skipped}個は除きました`]);
+    if (!R.slopeOk) n.push(['warn', `傾きが0でない（|t| = ${fix(R.tSlope, 3)} > ${fix(R.tCrit, 3)}）。測定範囲の位置によって偏りが変わります`]);
+    if (!R.interceptOk) n.push(['warn', `切片が0でない（|t| = ${fix(R.tIntercept, 3)} > ${fix(R.tCrit, 3)}）`]);
+    let h = head + banner(lv, R.acceptable ? '直線性は許容できる' : '直線性に問題がある', `「偏り = 0」の線が回帰直線の${Math.round((1 - (num(Lr.alpha) ?? 0.05)) * 1000) / 10}%信頼帯の${R.acceptable ? '中に収まる' : '外に出る'}`);
     h += kv([
-      ['部品数 g', String(R.g)], ['測定値の数', String(R.N)], ['傾き a', sig(R.slope)], ['切片 b', sig(R.intercept)], ['決定係数 R²', fix(R.R2, 4)], ['残差の標準偏差 s', sig(R.s)],
-      ['傾きの t', fix(R.tSlope, 3), `p ${pval(R.pSlope)}`], ['切片の t', fix(R.tIntercept, 3), `p ${pval(R.pIntercept)}`], ['t の臨界値', fix(R.tCrit, 3), `自由度 ${R.df}`],
-      ['%直線性（|a| × 100）', pct(R.pctLinearity), R.linearity != null ? `直線性 ${sig(R.linearity)}` : '全変動 σ を入れると表示'],
+      ['部品数g', String(R.g)], ['測定値の数', String(R.N)], ['傾きa', sig(R.slope)], ['切片b', sig(R.intercept)], ['決定係数R²', fix(R.R2, 4)], ['残差の標準偏差s', sig(R.s)],
+      ['傾きのt', fix(R.tSlope, 3), `p ${pval(R.pSlope)}`], ['切片のt', fix(R.tIntercept, 3), `p ${pval(R.pIntercept)}`], ['tの臨界値', fix(R.tCrit, 3), `自由度${R.df}`],
+      ['%直線性（|a| × 100）', pct(R.pctLinearity), R.linearity != null ? `直線性${sig(R.linearity)}` : '全変動σを入れると表示'],
     ]);
-    h += `<h3 class="sec">部品ごとの偏り</h3>` + table(['基準値', '回数', '偏りの平均', '標準偏差', 't', 'p 値'], R.perPart.map(p => [sig(p.ref, 6), String(p.n), sig(p.bias), sig(p.sd), fix(p.t, 3), pval(p.p)]));
+    h += `<h3 class="sec">部品ごとの偏り</h3>` + table(['基準値', '回数', '偏りの平均', '標準偏差', 't', 'p値'], R.perPart.map(p => [sig(p.ref, 6), String(p.n), sig(p.bias), sig(p.sd), fix(p.t, 3), pval(p.p)]));
     h += notes(n);
     h += `<div class="charts">${chartHtml('lc1', '直線性')}</div>` + tools('lin');
     out.innerHTML = h;
@@ -563,20 +563,20 @@
   function stabCompute() {
     const out = $('#stabOut'), head = '<h2><span class="step">2</span>結果</h2>';
     const x = values(Sb), m = clampInt(Sb.m, 1, 10, 1), ref = num(Sb.ref);
-    if (x.length < Math.max(2, 2 * m)) { out.innerHTML = head + '<p class="empty">測定値を入力してください（サブグループ 20〜25 組程度が目安）。</p>'; results.stab = null; return; }
+    if (x.length < Math.max(2, 2 * m)) { out.innerHTML = head + '<p class="empty">測定値を入力してください（サブグループ20〜25組程度が目安）。</p>'; results.stab = null; return; }
     let R;
     try { R = M.stability(x, m, ref); } catch (e) { out.innerHTML = head + `<p class="err-msg">${esc(e.message)}</p>`; results.stab = null; return; }
     results.stab = R;
     const c = R.chart, isI = m === 1;
     const lv = R.stable ? 'ok' : 'ng';
     const n = R.notes.map(s => ['warn', s]);
-    if (badCount(Sb)) n.push(['warn', `数値でないセル ${badCount(Sb)} 個は除きました`]);
-    for (const hit of R.mainHits) n.push(['err', `${isI ? 'I' : 'X̄'} 管理図：${hit.text}（${hit.from + 1}〜${hit.to + 1} 番目）`]);
-    if (R.rangeOut.length) n.push(['err', `${isI ? '移動範囲' : '範囲'}の管理図：管理限界の外 ${R.rangeOut.map(i => i + c.range.start).join('、')} 番目`]);
-    let h = head + banner(lv, R.stable ? '安定している（異常の兆候なし）' : '不安定（管理図に異常の兆候あり）', `${isI ? 'I-MR' : 'X̄-R'} 管理図、JIS Z 9020-2 の 8 ルールで判定`);
+    if (badCount(Sb)) n.push(['warn', `数値でないセル${badCount(Sb)}個は除きました`]);
+    for (const hit of R.mainHits) n.push(['err', `${isI ? 'I' : 'X̄'}管理図：${hit.text}（${hit.from + 1}〜${hit.to + 1}番目）`]);
+    if (R.rangeOut.length) n.push(['err', `${isI ? '移動範囲' : '範囲'}の管理図：管理限界の外${R.rangeOut.map(i => i + c.range.start).join('、')}番目`]);
+    let h = head + banner(lv, R.stable ? '安定している（異常の兆候なし）' : '不安定（管理図に異常の兆候あり）', `${isI ? 'I-MR' : 'X̄-R'}管理図、JIS Z 9020-2の8ルールで判定`);
     h += kv([
       ['測定値の数', String(x.length)], [isI ? '測定点' : 'サブグループ', String(c.main.points.length)], ['平均', sig(R.mean, 6)], ['偏り（平均 − 基準値）', sig(R.bias)],
-      ['繰り返し性 σ（群内）', sig(R.sigma)], ['中心線', sig(c.main.cl[0], 6)], ['UCL', sig(c.main.ucl[0], 6)], ['LCL', sig(c.main.lcl[0], 6)],
+      ['繰り返し性σ（群内）', sig(R.sigma)], ['中心線', sig(c.main.cl[0], 6)], ['UCL', sig(c.main.ucl[0], 6)], ['LCL', sig(c.main.lcl[0], 6)],
     ]);
     h += notes(n);
     h += `<div class="charts">${chartHtml('sc1', '安定性_平均')}${chartHtml('sc2', '安定性_範囲')}</div>` + tools('stab');
@@ -610,19 +610,19 @@
   function t1Compute() {
     const out = $('#t1Out'), head = '<h2><span class="step">2</span>結果</h2>';
     const x = values(T1), ref = num(T1.ref), tol = num(T1.tol);
-    if (x.length < 2) { out.innerHTML = head + '<p class="empty">測定値を入力してください（25〜50 回が一般的）。</p>'; results.t1 = null; return; }
+    if (x.length < 2) { out.innerHTML = head + '<p class="empty">測定値を入力してください（25〜50回が一般的）。</p>'; results.t1 = null; return; }
     if (ref == null || !(tol > 0)) { out.innerHTML = head + '<p class="empty">基準値と公差幅を入力してください。</p>'; results.t1 = null; return; }
     let R;
     try { R = M.type1(x, ref, tol, { K: (num(T1.K) ?? 20) / 100, L: num(T1.L) ?? 6, limit: num(T1.limit) ?? 1.33 }); } catch (e) { out.innerHTML = head + `<p class="err-msg">${esc(e.message)}</p>`; results.t1 = null; return; }
     results.t1 = R;
     const lv = R.okCg && R.okCgk ? 'ok' : 'ng';
     const n = R.notes.map(s => ['warn', s]);
-    n.push(['info', `Cg = (${sig(R.K * 100)}% × 公差) / (${sig(R.L)} × s)、Cgk = (${sig(R.K * 50)}% × 公差 − |偏り|) / (${sig(R.L / 2)} × s)。AIAG MSA 第4版の評価ではありません`]);
-    if (badCount(T1)) n.push(['warn', `数値でないセル ${badCount(T1)} 個は除きました`]);
-    let h = head + banner(lv, lv === 'ok' ? '測定器は使用できる（Cg・Cgk とも基準以上）' : '測定器は基準を満たさない', `Cg ${fix(R.Cg, 2)} ${tag(R.okCg ? 'ok' : 'ng', R.okCg ? `${R.limit} 以上` : `${R.limit} 未満`)} ／ Cgk ${fix(R.Cgk, 2)} ${tag(R.okCgk ? 'ok' : 'ng', R.okCgk ? `${R.limit} 以上` : `${R.limit} 未満`)}`);
+    n.push(['info', `Cg = (${sig(R.K * 100)}% × 公差) / (${sig(R.L)} × s)、Cgk = (${sig(R.K * 50)}% × 公差 − |偏り|) / (${sig(R.L / 2)} × s)。AIAG MSA第4版の評価ではありません`]);
+    if (badCount(T1)) n.push(['warn', `数値でないセル${badCount(T1)}個は除きました`]);
+    let h = head + banner(lv, lv === 'ok' ? '測定器は使用できる（Cg・Cgkとも基準以上）' : '測定器は基準を満たさない', `Cg ${fix(R.Cg, 2)} ${tag(R.okCg ? 'ok' : 'ng', R.okCg ? `${R.limit}以上` : `${R.limit}未満`)} ／ Cgk ${fix(R.Cgk, 2)} ${tag(R.okCgk ? 'ok' : 'ng', R.okCgk ? `${R.limit}以上` : `${R.limit}未満`)}`);
     h += kv([
-      ['測定回数 n', String(R.n)], ['平均', sig(R.mean, 6)], ['標準偏差 s', sig(R.sd)], ['偏り', sig(R.bias)],
-      ['Cg', fix(R.Cg, 3)], ['Cgk', fix(R.Cgk, 3)], ['偏りの t 検定', `p ${pval(R.p)}`, R.p != null && R.p < 0.05 ? '偏りは有意' : '偏りは有意でない'],
+      ['測定回数n', String(R.n)], ['平均', sig(R.mean, 6)], ['標準偏差s', sig(R.sd)], ['偏り', sig(R.bias)],
+      ['Cg', fix(R.Cg, 3)], ['Cgk', fix(R.Cgk, 3)], ['偏りのt検定', `p ${pval(R.p)}`, R.p != null && R.p < 0.05 ? '偏りは有意' : '偏りは有意でない'],
       ['L·s／公差', pct(R.pctEV)], ['|偏り|／公差', pct(R.pctBias)],
     ]);
     h += notes(n);
@@ -709,7 +709,7 @@
     const filled = judg.flat(2).filter(v => v !== '').length;
     if (!filled) { out.innerHTML = head + '<p class="empty">判定を入力するか、「サンプルデータで試す」を押してください。</p>'; results.attr = null; return; }
     const blank = judg.flat(2).length - filled;
-    if (blank) { out.innerHTML = head + `<p class="empty">判定が未入力のセルが ${blank} 個あります。全セルの入力が必要です。</p>`; results.attr = null; return; }
+    if (blank) { out.innerHTML = head + `<p class="empty">判定が未入力のセルが${blank}個あります。全セルの入力が必要です。</p>`; results.attr = null; return; }
     const refPart = ref.filter(v => v !== '').length;
     let R;
     try { R = M.attribute(judg, refPart === A.n ? ref : null, { bad: A.bad || undefined }); } catch (e) { out.innerHTML = head + `<p class="err-msg">${esc(e.message)}</p>`; results.attr = null; return; }
@@ -720,24 +720,24 @@
     else R.pairs.forEach(p => lvs.push(M.judgeKappa(p.kappa)));
     const lv = worst(lvs.filter(Boolean));
     const n = R.notes.map(s => ['info', s]);
-    if (refPart > 0 && refPart < A.n) n.unshift(['warn', `基準の判定が ${A.n - refPart} 部品で未入力のため、基準を使わずに計算しました`]);
+    if (refPart > 0 && refPart < A.n) n.unshift(['warn', `基準の判定が${A.n - refPart}部品で未入力のため、基準を使わずに計算しました`]);
     const big = lv === 'ok' ? '測定システムは合格' : lv === 'cond' ? '条件付きで合格' : lv === 'ng' ? '測定システムは不合格（改善が必要）' : '判定できません';
-    const sub = R.hasRef ? '測定者ごとの有効性・ミス率・誤警報率のうち最も悪い区分' : '基準がないため、測定者どうしの κ で判定';
+    const sub = R.hasRef ? '測定者ごとの有効性・ミス率・誤警報率のうち最も悪い区分' : '基準がないため、測定者どうしのκで判定';
     let h = head + banner(lv, big, sub);
     if (R.hasRef) {
       h += `<h3 class="sec">測定者ごとの評価</h3>` + table(
-        ['測定者', '有効性', `${Math.round((1 - R.alpha) * 100)}% 信頼区間`, 'ミス率', '誤警報率', '自己一致', 'κ（対 基準）'],
+        ['測定者', '有効性', `${Math.round((1 - R.alpha) * 100)}%信頼区間`, 'ミス率', '誤警報率', '自己一致', 'κ（対 基準）'],
         R.per.map((p, a) => [nm(a), { v: `${pct(100 * p.effectiveness, 1)}（${p.effective}/${R.n}）`, cls: M.judgeEff(p.effectiveness) }, `${pct(100 * p.effCI[0], 1)} 〜 ${pct(100 * p.effCI[1], 1)}`,
           p.missRate == null ? '―' : { v: `${pct(100 * p.missRate, 1)}（${p.miss}/${p.missOpp}）`, cls: M.judgeMiss(p.missRate) },
           p.faRate == null ? '―' : { v: `${pct(100 * p.faRate, 1)}（${p.fa}/${p.faOpp}）`, cls: M.judgeFa(p.faRate) },
           `${pct(100 * p.withinRate, 1)}（${p.within}/${R.n}）`, { v: fix(R.vsRef[a].kappa, 3), cls: M.judgeKappa(R.vsRef[a].kappa) }])
           .concat([['システム全体', `${pct(100 * R.sys.effectiveness, 1)}（${R.sys.effective}/${R.n}）`, `${pct(100 * R.sys.effCI[0], 1)} 〜 ${pct(100 * R.sys.effCI[1], 1)}`, '', '', `${pct(100 * R.sys.withinRate, 1)}（${R.sys.within}/${R.n}）`, '']]));
-      h += `<p class="hint">有効性：全回とも基準と一致した部品の割合（90% 以上 合格、80〜90% 条件付き）。ミス率：不合格品を合格と判定した割合（2% 以下 合格、2〜5% 条件付き）。誤警報率：合格品を不合格と判定した割合（5% 以下 合格、5〜10% 条件付き）。${R.bad != null ? `不合格は「${esc(R.bad)}」として計算。` : ''}</p>`;
+      h += `<p class="hint">有効性：全回とも基準と一致した部品の割合（90%以上 合格、80〜90%条件付き）。ミス率：不合格品を合格と判定した割合（2%以下 合格、2〜5%条件付き）。誤警報率：合格品を不合格と判定した割合（5%以下 合格、5〜10%条件付き）。${R.bad != null ? `不合格は「${esc(R.bad)}」として計算。` : ''}</p>`;
     } else {
       h += `<h3 class="sec">測定者ごとの自己一致</h3>` + table(['測定者', '自己一致', '信頼区間'], R.per.map((p, a) => [nm(a), `${pct(100 * p.withinRate, 1)}（${p.within}/${R.n}）`, `${pct(100 * p.withinCI[0], 1)} 〜 ${pct(100 * p.withinCI[1], 1)}`]));
     }
-    if (R.pairs.length) h += `<h3 class="sec">測定者どうしの κ（クロス表法）</h3>` + table(['組み合わせ', 'κ', '一致率', '偶然の一致率'], R.pairs.map(p => [`${nm(p.a)} × ${nm(p.b)}`, { v: fix(p.kappa, 3), cls: M.judgeKappa(p.kappa) }, pct(100 * p.po, 1), pct(100 * p.pe, 1)]))
-      + '<p class="hint">κ が 0.75 を超えれば良い一致、0.40 未満は一致が悪い（AIAG の目安）。</p>';
+    if (R.pairs.length) h += `<h3 class="sec">測定者どうしのκ（クロス表法）</h3>` + table(['組み合わせ', 'κ', '一致率', '偶然の一致率'], R.pairs.map(p => [`${nm(p.a)} × ${nm(p.b)}`, { v: fix(p.kappa, 3), cls: M.judgeKappa(p.kappa) }, pct(100 * p.po, 1), pct(100 * p.pe, 1)]))
+      + '<p class="hint">κが0.75を超えれば良い一致、0.40未満は一致が悪い（AIAGの目安）。</p>';
     h += notes(n);
     if (R.hasRef) h += `<div class="charts">${chartHtml('ac1', '計数値_有効性')}</div>`;
     h += tools('attr');
@@ -785,9 +785,9 @@
       const { R } = results.grr;
       const data = [['測定者', '回'].concat(Array.from({ length: G.n }, (_, p) => `部品${p + 1}`))].concat(G.cells.map((row, i) => [G.names[Math.floor(i / G.r)], (i % G.r) + 1].concat(row.map(v => num(v)))));
       const sheets = [
-        { name: '結果', rows: [['要因', '標準偏差', '6σ', '%寄与', '%TV', '%公差']].concat(R.rows.map(x => [x.name, x.sd, x.sv, x.pctContrib, x.pctTV, x.pctTol])).concat([[], ['ndc', R.ndc], ['方式', G.method === 'anova' ? 'ANOVA 法' : '平均・範囲法'], ['公差幅', num(G.tol)], ['工程の標準偏差', num(G.sigP)]]) },
+        { name: '結果', rows: [['要因', '標準偏差', '6σ', '%寄与', '%TV', '%公差']].concat(R.rows.map(x => [x.name, x.sd, x.sv, x.pctContrib, x.pctTV, x.pctTol])).concat([[], ['ndc', R.ndc], ['方式', G.method === 'anova' ? 'ANOVA法' : '平均・範囲法'], ['公差幅', num(G.tol)], ['工程の標準偏差', num(G.sigP)]]) },
       ];
-      if (R.table) sheets.push({ name: '分散分析表', rows: [['要因', '自由度', '平方和', '平均平方', 'F', 'p 値']].concat(R.table.map(t => [t.source, t.df, t.ss, t.ms, t.F, t.p])) });
+      if (R.table) sheets.push({ name: '分散分析表', rows: [['要因', '自由度', '平方和', '平均平方', 'F', 'p値']].concat(R.table.map(t => [t.source, t.df, t.ss, t.ms, t.F, t.p])) });
       sheets.push({ name: '測定値', rows: data });
       return sheets;
     },

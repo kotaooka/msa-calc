@@ -22,7 +22,7 @@
   const simpW = (i, n) => (i === 0 || i === n) ? 1 : (i % 2 ? 4 : 2);
   const rangeCache = {};
   function rangeMoments(m) {
-    if (!(m >= 2 && Number.isInteger(m))) throw new Error('範囲の係数は 2 個以上で求めます');
+    if (!(m >= 2 && Number.isInteger(m))) throw new Error('範囲の係数は2個以上で求めます');
     if (rangeCache[m]) return rangeCache[m];
     grid();
     // E[W] = ∫ 1 − Φ^m − (1−Φ)^m dx
@@ -57,14 +57,14 @@
   // data[測定者][回][部品]。全セルに数値がある釣り合い型（クロス）の計画だけ扱う
   function shapeOf(data) {
     const k = data.length, r = k ? data[0].length : 0, n = r ? data[0][0].length : 0;
-    if (k < 2) throw new Error('測定者は 2 人以上必要です');
-    if (r < 2) throw new Error('繰り返し（回数）は 2 回以上必要です');
-    if (n < 2) throw new Error('部品は 2 個以上必要です');
+    if (k < 2) throw new Error('測定者は2人以上必要です');
+    if (r < 2) throw new Error('繰り返し（回数）は2回以上必要です');
+    if (n < 2) throw new Error('部品は2個以上必要です');
     for (let a = 0; a < k; a++) {
       if (data[a].length !== r) throw new Error('測定者ごとの回数がそろっていません');
       for (let t = 0; t < r; t++) {
         if (data[a][t].length !== n) throw new Error('部品数がそろっていません');
-        for (let p = 0; p < n; p++) if (!Number.isFinite(data[a][t][p])) throw new Error(`測定者${a + 1}・${t + 1}回目・部品${p + 1} の値がありません（全セルの入力が必要です）`);
+        for (let p = 0; p < n; p++) if (!Number.isFinite(data[a][t][p])) throw new Error(`測定者${a + 1}・${t + 1}回目・部品${p + 1}の値がありません（全セルの入力が必要です）`);
       }
     }
     return { k, r, n };
@@ -80,7 +80,7 @@
     if (opt.sigmaProcess > 0) {
       // 既知の工程変動を全変動として使う（AIAG：TV = 工程の σ、PV = √(TV² − GRR²)）
       TV = opt.sigmaProcess; tvSource = 'process';
-      if (GRR >= TV) { PV = 0; notes.push('GRR が入力した工程の標準偏差以上のため、部品変動を 0 としました'); }
+      if (GRR >= TV) { PV = 0; notes.push('GRRが入力した工程の標準偏差以上のため、部品変動を0としました'); }
       else PV = Math.sqrt(sq(TV) - sq(GRR));
     }
     const pct = v => TV > 0 ? 100 * v / TV : null;
@@ -127,10 +127,10 @@
     const Xbb = mean(Xbar), A2 = 3 / (d2(r) * Math.sqrt(r));
     const uclX = Xbb + A2 * Rbb, lclX = Xbb - A2 * Rbb;
     const outside = cellMean.flat().filter(v => v > uclX || v < lclX).length;
-    if (av2 < 0) res.notes.push('AV の根号の中が負になったため AV = 0 としました');
-    if (outR.length) res.notes.push(`範囲が管理限界（${fmt(uclR)}）を超えた点が ${outR.length} 個あります。その測定を見直すか、測り直してから解析してください`);
+    if (av2 < 0) res.notes.push('AVの根号の中が負になったためAV = 0としました');
+    if (outR.length) res.notes.push(`範囲が管理限界（${fmt(uclR)}）を超えた点が${outR.length}個あります。その測定を見直すか、測り直してから解析してください`);
     const fracOut = outside / (k * n);
-    if (fracOut < 0.5) res.notes.push(`平均の管理図で管理限界の外にある点が ${outside}/${k * n} 個（${Math.round(fracOut * 100)}%）です。半分以上が外にあるのが望ましく、部品のばらつきが小さすぎるか測定のばらつきが大きすぎる可能性があります`);
+    if (fracOut < 0.5) res.notes.push(`平均の管理図で管理限界の外にある点が${outside}/${k * n}個（${Math.round(fracOut * 100)}%）です。半分以上が外にあるのが望ましく、部品のばらつきが小さすぎるか測定のばらつきが大きすぎる可能性があります`);
     return Object.assign(res, {
       method: 'avgRange', k, r, n, K1: k1, K2: k2, K3: k3, Rbar, Rbb, Xbar, Xdiff, Rp, partMean, cellMean, ranges,
       rChart: { ucl: uclR, lcl: lclR, cl: Rbb, out: outR, D4, D3 }, xChart: { cl: Xbb, ucl: uclX, lcl: lclX, outside, total: k * n, A2 },
@@ -205,7 +205,7 @@
   // x: 基準部品を繰り返し測った値、ref: 基準値。opt.alpha（既定 0.05）、opt.tol、opt.tv（全変動の標準偏差、任意）
   function bias(x, ref, opt = {}) {
     const n = x.length;
-    if (n < 2) throw new Error('測定値は 2 個以上必要です');
+    if (n < 2) throw new Error('測定値は2個以上必要です');
     if (!Number.isFinite(ref)) throw new Error('基準値を入力してください');
     const alpha = opt.alpha != null ? opt.alpha : 0.05;
     const xb = mean(x), b = xb - ref, sr = sd(x), sb = sr / Math.sqrt(n), df = n - 1;
@@ -215,7 +215,7 @@
     const ci = [b - tc * sb, b + tc * sb];
     const acceptable = ci[0] <= 0 && 0 <= ci[1];
     const notes = [];
-    if (n < 10) notes.push(`測定回数が ${n} 回です（10 回以上が推奨）`);
+    if (n < 10) notes.push(`測定回数が${n}回です（10回以上が推奨）`);
     return {
       n, mean: xb, ref, bias: b, sigmaR: sr, sigmaB: sb, t, df, p, alpha, tCrit: tc, ci, acceptable,
       pctBiasTol: opt.tol > 0 ? 100 * Math.abs(b) / opt.tol : null,
@@ -228,7 +228,7 @@
   // parts: [{ ref, x: [...] }]。偏り（測定値 − 基準値）を基準値に回帰し、回帰直線の信頼帯に「偏り = 0」の線が収まるかを見る
   function linearity(parts, opt = {}) {
     const g = parts.length;
-    if (g < 2) throw new Error('基準値の異なる部品が 2 個以上必要です');
+    if (g < 2) throw new Error('基準値の異なる部品が2個以上必要です');
     const alpha = opt.alpha != null ? opt.alpha : 0.05;
     const xs = [], ys = [];
     for (const pt of parts) {
@@ -264,8 +264,8 @@
       return { ref: pt.ref, n: bs.length, bias: bb, sd: sp, t: tp, p: tp != null ? 2 * tSf(Math.abs(tp), bs.length - 1) : null };
     });
     const notes = [];
-    if (g < 5) notes.push(`部品が ${g} 個です（5 個以上が推奨）`);
-    if (parts.some(pt => pt.x.length < 10)) notes.push('測定回数が 10 回未満の部品があります（各 10 回以上が推奨）');
+    if (g < 5) notes.push(`部品が${g}個です（5個以上が推奨）`);
+    if (parts.some(pt => pt.x.length < 10)) notes.push('測定回数が10回未満の部品があります（各10回以上が推奨）');
     return {
       g, N, slope: a, intercept: b, s, R2, df, tCrit: tc, seSlope: seA, seIntercept: seB, tSlope: tA, tIntercept: tB, pSlope: pA, pIntercept: pB,
       slopeOk: tA <= tc, interceptOk: tB <= tc, zeroInside, acceptable: zeroInside, band, range: [lo, hi], points: xs.map((x, i) => [x, ys[i]]), perPart,
@@ -276,8 +276,8 @@
   // ---- 安定性 ----
   // 基準部品を定期的に測った値の並び x を、サブグループサイズ m で管理図にする（m = 1 なら I-MR）
   function stability(x, m, ref, opt = {}) {
-    if (x.length < 2) throw new Error('測定値は 2 個以上必要です');
-    if (!(m >= 1 && m <= 10)) throw new Error('サブグループサイズは 1〜10 にしてください');
+    if (x.length < 2) throw new Error('測定値は2個以上必要です');
+    if (!(m >= 1 && m <= 10)) throw new Error('サブグループサイズは1〜10にしてください');
     const c = controlCharts(x, m);
     if (!c) throw new Error('管理図を作れません（データが少なすぎます）');
     const rules = opt.rules || [1, 2, 3, 4, 5, 6, 7, 8];
@@ -289,8 +289,8 @@
     const sigma = m === 1 ? c.main.sigma[0] : c.range.cl[0] / d2(m);
     const notes = [];
     const nSub = c.main.points.length;
-    if (nSub < 20) notes.push(`${m === 1 ? '測定点' : 'サブグループ'}が ${nSub} 個です（20〜25 個程度が目安）`);
-    if (m > 1 && x.length % m) notes.push(`サブグループに満たない末尾 ${x.length % m} 点は除外しました`);
+    if (nSub < 20) notes.push(`${m === 1 ? '測定点' : 'サブグループ'}が${nSub}個です（20〜25個程度が目安）`);
+    if (m > 1 && x.length % m) notes.push(`サブグループに満たない末尾${x.length % m}点は除外しました`);
     const xb = mean(used);
     return {
       chart: c, m, mainHits, rangeOut, stable: mainHits.length === 0 && rangeOut.length === 0,
@@ -303,7 +303,7 @@
   // 既定は K = 20%、L = 6（判定の目安は 1.33 以上）
   function type1(x, ref, tol, opt = {}) {
     const n = x.length;
-    if (n < 2) throw new Error('測定値は 2 個以上必要です');
+    if (n < 2) throw new Error('測定値は2個以上必要です');
     if (!Number.isFinite(ref)) throw new Error('基準値を入力してください');
     if (!(tol > 0)) throw new Error('公差幅を入力してください');
     const K = opt.K != null ? opt.K : 0.2, L = opt.L != null ? opt.L : 6, limit = opt.limit != null ? opt.limit : 1.33;
@@ -313,8 +313,8 @@
     const t = s > 0 ? b / (s / Math.sqrt(n)) : null;
     const p = t != null ? 2 * tSf(Math.abs(t), n - 1) : null;
     const notes = [];
-    if (n < 25) notes.push(`測定回数が ${n} 回です（25〜50 回が一般的）`);
-    if (s === 0) notes.push('標準偏差が 0 です。測定器の分解能が足りない可能性があります');
+    if (n < 25) notes.push(`測定回数が${n}回です（25〜50回が一般的）`);
+    if (s === 0) notes.push('標準偏差が0です。測定器の分解能が足りない可能性があります');
     return {
       n, mean: xb, sd: s, ref, bias: b, tol, K, L, limit, Cg, Cgk, t, p,
       // Cg・Cgk に対応する繰り返し性と偏りの割合（公差に対する %）
@@ -349,7 +349,7 @@
   const BAD_RE = /^(0|ng|n\.g\.|不合格|不良|否|×|✕|x|bad|reject|fail|nok|no)$/i;
   function attribute(judg, ref, opt = {}) {
     const k = judg.length, r = k ? judg[0].length : 0, n = r ? judg[0][0].length : 0;
-    if (k < 1 || r < 1 || n < 2) throw new Error('測定者 1 人以上・1 回以上・部品 2 個以上が必要です');
+    if (k < 1 || r < 1 || n < 2) throw new Error('測定者1人以上・1回以上・部品2個以上が必要です');
     for (const at of judg) { if (at.length !== r) throw new Error('測定者ごとの回数がそろっていません'); for (const tr of at) { if (tr.length !== n) throw new Error('部品数がそろっていません'); if (tr.some(v => v == null || v === '')) throw new Error('判定が入力されていないセルがあります'); } }
     const hasRef = Array.isArray(ref) && ref.length === n && ref.every(v => v != null && v !== '');
     const alpha = opt.alpha != null ? opt.alpha : 0.05;
@@ -390,10 +390,10 @@
       Object.assign(sys, { effective: e, effectiveness: e / n, effCI: binomCI(e, n, alpha) });
     }
     const notes = [];
-    if (!hasRef) notes.push('基準の判定がないため、有効性・ミス率・誤警報率と基準との κ は計算していません');
+    if (!hasRef) notes.push('基準の判定がないため、有効性・ミス率・誤警報率と基準とのκは計算していません');
     if (hasRef && binary && bad == null) notes.push('どちらが不合格の判定か分からないため、ミス率・誤警報率は計算していません（不合格を表す値を選んでください）');
-    if (!binary && hasRef) notes.push('判定が 3 区分以上あるため、ミス率・誤警報率は計算していません');
-    if (n < 50) notes.push(`部品が ${n} 個です（AIAG の例では 50 個。少ないと信頼区間が広くなります）`);
+    if (!binary && hasRef) notes.push('判定が3区分以上あるため、ミス率・誤警報率は計算していません');
+    if (n < 50) notes.push(`部品が${n}個です（AIAGの例では50個。少ないと信頼区間が広くなります）`);
     return { k, r, n, cats, binary, bad, good, hasRef, pairs, vsRef, per, sys, alpha, notes };
   }
   // κ の目安（AIAG）：0.75 を超えれば良い一致、0.40 未満は一致が悪い
