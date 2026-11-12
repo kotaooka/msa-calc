@@ -81,7 +81,7 @@
       }
       names = [...new Set(opNames)];
       k = names.length;
-      if (body.length % k) throw new Error(`測定者 ${k} 人で行数 ${body.length} が割り切れません`);
+      if (body.length % k) throw new Error(`測定者${k}人で行数${body.length}が割り切れません`);
       r = body.length / k;
       // 測定者ごとに連続していなければ並べ替える
       const order = [];
@@ -90,7 +90,7 @@
       if (names.some(nm => opNames.filter(o => o === nm).length !== r)) throw new Error('測定者ごとの行数（回数）がそろっていません');
     } else {
       k = cur.k >= 2 && body.length % cur.k === 0 ? cur.k : cur.r >= 2 && body.length % cur.r === 0 ? body.length / cur.r : null;
-      if (!k) throw new Error(`行数 ${body.length} を測定者の人数で割り切れません。測定者の人数・回数を先に設定してください`);
+      if (!k) throw new Error(`行数${body.length}を測定者の人数で割り切れません。測定者の人数・回数を先に設定してください`);
       r = body.length / k;
       names = null;
     }
@@ -140,7 +140,7 @@
       const nums = vals.map(Number);
       if (vals.length >= 2 && !(c + 1 < w && nums.every((v, i) => v === i + 1))) return vals;
     }
-    throw new Error('数値が 2 個以上ある列が見つかりません');
+    throw new Error('数値が2個以上ある列が見つかりません');
   }
 
   // ---- 直線性 ----
@@ -195,7 +195,7 @@
     let withRef;
     if ((w2 - 1) % kk === 0 && w2 > 1) withRef = true;
     else if (w2 % kk === 0) withRef = false;
-    else throw new Error(`列数 ${w2} が測定者 ${kk} 人と合いません。測定者の人数を先に設定してください`);
+    else throw new Error(`列数${w2}が測定者${kk}人と合いません。測定者の人数を先に設定してください`);
     k = kk; r = (w2 - (withRef ? 1 : 0)) / k;
     return {
       k, r, n: rows.length, names: null,

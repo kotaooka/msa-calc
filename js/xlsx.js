@@ -23,13 +23,13 @@
     for (let i = b.length - 22; i >= Math.max(0, b.length - 22 - 65535); i--) {
       if (u32(b, i) === 0x06054b50) { eocd = i; break; }
     }
-    if (eocd < 0) throw new Error('Excel（.xlsx）ファイルとして読み込めません。旧形式の .xls の場合は、Excel で .xlsx に保存し直してください');
+    if (eocd < 0) throw new Error('Excel（.xlsx）ファイルとして読み込めません。旧形式の .xlsの場合は、Excelで .xlsxに保存し直してください');
     const count = u16(b, eocd + 10);
     let p = u32(b, eocd + 16);
     const files = {};
     const dec = new TextDecoder('utf-8');
     for (let i = 0; i < count; i++) {
-      if (u32(b, p) !== 0x02014b50) throw new Error('ZIP の中央ディレクトリが壊れています');
+      if (u32(b, p) !== 0x02014b50) throw new Error('ZIPの中央ディレクトリが壊れています');
       const method = u16(b, p + 10), csize = u32(b, p + 20), nlen = u16(b, p + 28), elen = u16(b, p + 30), clen = u16(b, p + 32);
       const local = u32(b, p + 42);
       const name = dec.decode(b.subarray(p + 46, p + 46 + nlen));
@@ -107,7 +107,7 @@
     const dec = new TextDecoder('utf-8');
     const text = async name => { const f = files[name]; return f ? dec.decode(await f()) : null; };
     const wb = await text('xl/workbook.xml');
-    if (!wb) throw new Error('Excel（.xlsx）ファイルとして読み込めません（xl/workbook.xml がありません）');
+    if (!wb) throw new Error('Excel（.xlsx）ファイルとして読み込めません（xl/workbook.xmlがありません）');
     const rels = (await text('xl/_rels/workbook.xml.rels')) || '';
     const target = {};
     for (const m of rels.matchAll(/<Relationship\b([^>]*)\/?>/g)) target[attr(m[1], 'Id')] = attr(m[1], 'Target');
