@@ -23,11 +23,13 @@ node tests/test.js
 node tests/published.js
 python tests/make_reference.py && node tests/test.js
 ```
+- push の前に `/verify` を実行する（上の検査に加え、sw.js の更新漏れと README の「計算の検証」もまとめて確かめる）。
 - `git diff --exit-code` は埋め込みが最新かの確認。`python tools/build.py` で差分が出たら、その結果をコミットに含める。
 
 ## 検算の原則
 - 期待値は規格の表・公表資料・独立した実装（`tests/make_reference.py` など）の値にする。Claude 自身が計算した値を期待値にしない。
 - テストを通すために期待値・許容差を緩めたり、テストを消したり飛ばしたりしない。合わないときは原因を調べ、直せなければ報告する。
+- 計算・規格の表・期待値を変えたら、push の前に `standard-checker` サブエージェントに照合させる。
 - 計算を変えたら、README の「計算の検証」（出典・照合件数・最大の差）を実際の結果に合わせて直す。
 
 ## 公開ファイルを更新したとき
