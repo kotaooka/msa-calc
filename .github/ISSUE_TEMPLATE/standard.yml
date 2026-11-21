@@ -1,0 +1,30 @@
+name: 規格改訂
+description: よりどころの規格の改訂・廃止への対応
+labels: ["規格改訂"]
+body:
+  - type: input
+    id: standard
+    attributes:
+      label: 規格
+      description: 番号と版（例：JIS B 0405:1991 → ISO 2768-1:2026）
+    validations:
+      required: true
+  - type: textarea
+    id: change
+    attributes:
+      label: 変わった内容
+      description: 表・式・適用範囲・用語のどこが変わったか
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: 影響する箇所
+      description: 計算・表・解説・README・テストのどこを直すか
+  - type: textarea
+    id: source
+    attributes:
+      label: 出典
+      description: 改訂を確かめた資料（JISC の検索結果、ISO の規格ページなど）
+    validations:
+      required: true
